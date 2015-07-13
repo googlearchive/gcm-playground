@@ -1,0 +1,25 @@
+########################################################################
+# The Web UI that consumes gcm-go and provides a playground.
+########################################################################
+
+web:
+  build: ./web
+  command: go run server.go
+  ports:
+    - "8080:8080"
+  volumes:
+    - web/:/go/src/gcm-playground
+  links:
+    - logging
+
+
+########################################################################
+# The logging pipeline for the app server.
+########################################################################
+
+logging:
+  image: sebp/elk
+  ports:
+    - "5601:5601"
+    - "9200:9200"
+    - "5000:5000"
