@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="GCM Playground" />
+  <title>GCM Playground</title>
+
+  <!-- build:js bower_components/webcomponentsjs/webcomponents-lite.min.js -->
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <!-- endbuild -->
+
+  <!-- will be replaced with elements/elements.vulcanized.html -->
+  <link rel="import" href="elements/elements.html">
+  <!-- endreplace-->
+
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Oxygen:700|Source+Sans+Pro">
+
+</head>
+
+<body unresolved class="fullbleed layout vertical">
+
+  <span id="browser-sync-binding"></span>
+
+  <template is="dom-bind" id="app">
+
+    <paper-toolbar class="medium-tall">
+      <div class="title">GCM Playground</div>
+      <paper-tabs selected="{{route}}">
+
+        <paper-tab link>
+          <a class="horizontal center-center layout" data-route="home" href="/">Home</a>
+        </paper-tab>
+
+        <paper-tab link>
+          <a class="horizontal center-center layout" data-route="downstream" href="/downstream">Downstream</a>
+        </paper-tab>
+
+        <paper-tab link>
+          <a class="horizontal center-center layout" data-route="upstream" href="/upstream">Upstream</a>
+        </paper-tab>
+
+        <paper-tab link>
+          <a class="horizontal center-center layout" data-route="settings" href="/settings">Settings</a>
+        </paper-tab>
+
+      </paper-tabs>
+    </paper-toolbar>
+
+
+    <iron-pages attr-for-selected="data-route" selected="{{route}}">
+
+      <section data-route="home">
+        <h2>Homepage</h2>
+      </section>
+
+      <section main data-route="downstream">
+        <downstream-card></downstream-card>
+      </section>
+
+      <section main data-route="upstream">
+        <h2>Upstream messages</h2>
+
+        <paper-material elevation="2">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </paper-material>
+      </section>
+
+      <section main data-route="settings">
+        <h2>Settings</h2>
+
+        <paper-material elevation="2">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </paper-material>
+      </section>
+
+    </iron-pages>
+
+  </template>
+
+  <!-- build:js scripts/app.js -->
+  <script src="scripts/app.js"></script>
+  <!-- endbuild-->
+</body>
+
+</html>

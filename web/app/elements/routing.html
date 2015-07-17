@@ -1,0 +1,27 @@
+<script src="../bower_components/page/page.js"></script>
+<script>
+  window.addEventListener('WebComponentsReady', function() {
+
+    page('/', function () {
+      app.route = 'home';
+    });
+
+    page('/downstream', function () {
+      app.route = 'downstream';
+    });
+
+    page('/upstream', function () {
+      app.route = 'upstream';
+    });
+
+    page('/settings', function () {
+      app.route = 'settings';
+    });
+
+    // add #! before urls
+    page({
+      hashbang: true
+    });
+
+  });
+</script>

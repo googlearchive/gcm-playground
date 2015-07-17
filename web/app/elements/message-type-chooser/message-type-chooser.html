@@ -1,0 +1,45 @@
+<dom-module id="message-type-chooser">
+
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <template>
+    <paper-radio-group on-change="messageTypeChangeHandler">
+      <paper-radio-button name="unicast">Unicast</paper-radio-button>
+      <paper-radio-button name="multicast">Multicast</paper-radio-button>
+      <paper-radio-button name="pubsub">Pubsub</paper-radio-button>
+      <paper-radio-button name="notification_group">Notification Group</paper-radio-button>
+    </paper-radio-group>
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'message-type-chooser',
+
+
+        _log: function(msg) {
+          log('message-type-chooser', msg);
+        },
+
+
+        /**
+         * Handles the selection of the downstream message type.
+         */
+        messageTypeChangeHandler: function(e) {
+          var selected_type = e.target.attributes.name.value;
+          this._log("Selected " + selected_type);
+          this.fire('message-type-changed', { choice: selected_type });
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>
