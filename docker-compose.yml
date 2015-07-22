@@ -18,38 +18,22 @@
 
 web:
   build: ./web
-  command: gulp serve
-  ports:
-    - "3000:3000"
-  volumes:
-    - web/:/src/gcm-playground/web/
-  links:
-    - server
-
-
-# ########################################################################
-# # The GCM App server.
-# ########################################################################
-
-server:
-  build: ./server
   command: go run server.go
   ports:
-    - "4260:4260"
+    - "8080:8080"
   volumes:
-    - server/:/src/gcm-playground/server/
-#   links:
-#     - logging
+    - web/:/go/src/gcm-playground
+  links:
+    - logging
 
 
-# # ########################################################################
-# # # The logging pipeline for the app server.
-# # # TODO(karangoel): Temporarily disabled.
-# # ########################################################################
+########################################################################
+# The logging pipeline for the app server.
+########################################################################
 
-# # logging:
-# #   image: sebp/elk
-# #   ports:
-# #     - "5601:5601"
-# #     - "9200:9200"
-# #     - "5000:5000"
+logging:
+  image: sebp/elk
+  ports:
+    - "5601:5601"
+    - "9200:9200"
+    - "5000:5000"

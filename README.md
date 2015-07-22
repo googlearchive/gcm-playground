@@ -22,9 +22,8 @@ Getting Started
 #### Installation
 
 - [Install Docker and Docker Compose](https://docs.docker.com/compose/install/).
-- Install Node.js >=0.12.0.
 - Clone this repo.
-- `$ ./start.sh`
+- `$ docker-compose up`
 
 #### Accessing services
 
@@ -32,8 +31,7 @@ If using boot2docker, run `$ boot2docker ip` to find out the VM IP address. Usua
 
 The ports that are being used are:
 
-- **`3000` - Playground Web UI**
-- `8080` - Playground server
+- **`8080` - Playground server**
 - `5601` - Kibana web interface
 - `9200` - Elasticsearch JSON interface
 - `5000` - Logstash server, receives logs from logstash forwarders
