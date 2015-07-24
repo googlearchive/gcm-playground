@@ -1,0 +1,130 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+
+<dom-module id="request-previewer">
+
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <template>
+    <iron-collapse id="httpPreview">
+      <paper-item>Request URL: <code>https://gcm-http.googleapis.com/gcm/send</code></paper-item>
+      <section>
+        <h4>Request Headers</h4>
+        <paper-item>Content-Type: application/json</paper-item>
+        <paper-item>Authorization: key=YOUR_API_KEY</paper-item>
+      </section>
+
+      <section>
+        <h4>Request Body</h4>
+        <paper-textarea label="" value="{{requestOutput_}}"></paper-textarea>
+      </section>
+    </iron-collapse>
+
+    <iron-collapse id="xmppPreview">
+      <section>
+        <h4>XMPP stanza</h4>
+        <paper-textarea label="Request Body" value="{{requestOutput_}}"></paper-textarea>
+      </section>
+    </iron-collapse>
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'request-previewer',
+
+
+        properties: {
+
+          httpSelected: {
+            type: Boolean,
+            value: false
+          },
+
+          xmppSelected: {
+            type: Boolean,
+            value: false
+          }
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('request-previewer', msg);
+        },
+
+
+        /**
+         * Update the state of the element.
+         */
+        update: function() {
+          this.log_("Updating");
+
+          console.log(this.$.httpPreview);
+          console.log(this.$.httpPreview.attributes);
+          console.log(this.$.xmppPreview);
+          console.log(this.$.xmppPreview.attributes);
+
+          if (this.httpSelected) {
+            this.requestOutput_ = JSON.stringify({ "collapse_key": "score_update",
+                "time_to_live": 108,
+                "delay_while_idle": true,
+                "data": {
+                  "score": "4x8",
+                  "time": "15:16.2342"
+                },
+                "to" : "APA91bHun4MxP5egoKMwt2KZFBaFUH-1RYqx..."
+              });
+
+            this.$.httpPreview.opened = true;
+            this.$.xmppPreview.opened = false;
+          } else {
+            this.requestOutput_ = '<message id="">\n' +
+                '<gcm xmlns="google:mobile:data">\n' +
+                '{\n' +
+                '    "to":"REGISTRATION_ID",  // "to" replaces "registration_ids"\n' +
+                '    "notification": {\n' +
+                '      "title": "Portugal vs. Denmark”,\n' +
+                '      "text”: "5 to 1”\n' +
+                '    },\n' +
+                '    "time_to_live":"600"\n' +
+                '}\n' +
+                '</gcm>\n' +
+              '</message>';
+
+            this.$.xmppPreview.opened = true;
+            this.$.httpPreview.opened = false;
+          }
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>

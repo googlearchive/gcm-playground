@@ -63,9 +63,9 @@ func main() {
 
 	http.Handle("/", r)
 
-	log.Println("Started, serving at 8080")
-	err := http.ListenAndServe(":8080", nil)
+	log.Println("Started, serving at 4260")
+	err := http.ListenAndServe(":4260", nil)
 	if err != nil {
-		panic("ListenAndServe: " + err.Error())
+		log.Fatal("ListenAndServe: " + err.Error())
 	}
 }

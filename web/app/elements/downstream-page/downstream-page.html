@@ -1,0 +1,429 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../message-type-chooser/message-type-chooser.html">
+<link rel="import" href="../protocol-chooser/protocol-chooser.html">
+<link rel="import" href="../recipients-chooser/recipients-chooser.html">
+<link rel="import" href="../request-previewer/request-previewer.html">
+
+
+<dom-module id="downstream-page">
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    paper-material {
+      @apply(--layout-vertical);
+      border-radius: 2px;
+      height: 100%;
+      padding: 30px;
+      margin: 16px auto;
+      background: white;
+    }
+
+    #parameters {
+      display: block;
+    }
+
+    #parameters section, #preview section {
+      padding: 20px;
+    }
+
+    #parameters section h4, #preview section h4 {
+      margin-bottom: 30px;
+    }
+
+    #parameters .notif_line {
+      width: 49%;
+      display: inline-block;
+    }
+
+    #parameters .notif_line:nth-child(odd) {
+      margin-left: 10px;
+    }
+
+    #parameters .notif_line paper-input, #parameters .notif_line paper-textarea {
+      width: 70%;
+      margin-left: 10px;
+      display: inline-block;
+    }
+
+    #parameters paper-input, #parameters paper-textarea {
+      width: 45%;
+      margin-left: 0;
+      margin-right: 10px;
+      display: inline-block;
+    }
+
+    #parameters .line {
+      margin-bottom: 40px;
+    }
+
+    #parameters .line span {
+      margin-left: 24px;
+    }
+
+    #parameters .priority {
+      margin-top: 20px;
+    }
+
+    #parameters #priority {
+      width: 40%;
+    }
+
+  </style>
+  <template>
+     <h2>Send Downstream Message</h2>
+
+      <paper-material elevation="2">
+        <h3>Step 1: Type of Message</h3>
+        <message-type-chooser></message-type-chooser>
+      </paper-material>
+
+      <paper-material elevation="2">
+        <h3>Step 2: Select Protocol</h3>
+        <protocol-chooser disable-http="{{disableHttp}}" disable-xmpp="{{disableXmpp}}"></protocol-chooser>
+      </paper-material>
+
+      <paper-material elevation="2">
+        <h3>Step 3: Select Targets</h3>
+        <recipients-chooser limit$="{{regIdLimit_}}" registration-ids-length$="{{registrationIds.length}}"></recipients-chooser>
+      </paper-material>
+
+      <paper-material elevation="2" id="parameters">
+        <h3>Step 4: Set Options</h3>
+
+        <section>
+          <h4>Notification Payload</h4>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Title"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Body"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon icon="icons:d"></iron-icon><paper-input label="Icon"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Sound"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Badge"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon icon="icons:d"></iron-icon><paper-input label="Tag"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon icon="icons:d"></iron-icon><paper-input label="Color"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Click Action"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Body Loc Key"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-textarea label="Body Loc Args (JSON)"></paper-textarea>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Title Loc Key"></paper-input>
+          </div>
+
+          <div class="notif_line">
+            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-textarea label="Title Loc Args (JSON)"></paper-textarea>
+          </div>
+        </section>
+
+        <section>
+          <h4>Data Payload</h4>
+          <paper-textarea label="JSON"></paper-textarea>
+        </section>
+
+        <section>
+          <h4>Other Options</h4>
+
+          <div class="line">
+            <paper-toggle-button></paper-toggle-button>
+            <span>Dry Run</span>
+          </div>
+          <div class="line">
+            <paper-toggle-button id="delivery_receipt_requested" disabled="{{httpSelected}}"></paper-toggle-button>
+            <span>Delivery Receipt Requested</span>
+          </div>
+          <div class="line">
+            <paper-toggle-button></paper-toggle-button>
+            <span>Delay While Idle</span>
+          </div>
+
+          <paper-input label="Time to Live"></paper-input>
+          <paper-input id="collapse_key" label="Collapse Key"></paper-input>
+          <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
+          <paper-textarea label="Content Available (JSON)"></paper-textarea>
+
+          <div class="priority">
+            <div>Priority:</div><br>
+            <paper-slider id="priority" pin snaps max="10" step="1" value="1"></paper-slider>
+          </div>
+
+        </section>
+      </paper-material>
+
+      <paper-material elevation="2" id="preview">
+        <h3>Request Preview</h3>
+        <request-previewer http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}"></request-previewer>
+      </paper-material>
+
+      <paper-toast id="toast" text="" visible="false"></paper-toast>
+  </template>
+
+  <script>
+    (function () {
+      Polymer({
+        is: 'downstream-page',
+
+
+        properties: {
+
+          // This list of selected registration IDs
+          registrationIds: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          // List of custom registration IDs, topic or notification group
+          // For topic or notification group, length === 1
+          customIds: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          toast: {
+            text: String,
+            visible: Boolean,
+            value: function() {
+              return { text: '', visible: false };
+            }
+          },
+
+          // The protocol that is selected right now
+          selectedProtocol: {
+            type: String,
+            value: 'unicast'
+          },
+
+          // True if the selected protocol is XMPP
+          xmppSelected: {
+            type: Boolean,
+            computed: 'isProtocol_(selectedProtocol, "xmpp")'
+          },
+
+          // True if the selected protocol is HTTP
+          httpSelected: {
+            type: Boolean,
+            computed: 'isProtocol_(selectedProtocol, "http")'
+          },
+
+          // Should HTTP be disabled?
+          disableHttp: {
+            type: Boolean,
+            value: false
+          },
+
+          // Should XMPP be disabled?
+          disableXmpp: {
+            type: Boolean,
+            value: false
+          },
+
+        },
+
+
+        listeners: {
+          'message-type-changed': 'messageTypeChangeHandler',
+          'protocol-changed': 'protocolChangeHandler',
+          'reg-id-changed': 'registrationIdChangeHandler',
+          'custom-ids': 'customListHandler',
+          'show-toast': 'showToast_'
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('downstream-page', msg);
+        },
+
+
+        /********************************************
+         * EVENT HANDLERS
+         ********************************************/
+
+        /**
+         * Handles the selection of the downstream message type.
+         */
+        messageTypeChangeHandler: function(e) {
+          var selectedType = e.detail.choice;
+
+          this.log_("Selected " + selectedType);
+
+          this.$$('protocol-chooser').reset();
+          this.$$('recipients-chooser').deselectAllRegIds_();
+          this.$$('recipients-chooser').emptyCustomList_();
+
+          this.setState_(selectedType);
+        },
+
+        /**
+         * Handles the selection of the downstream message protocol.
+         */
+        protocolChangeHandler: function(e) {
+          this.selectedProtocol = e.detail.choice;
+          this.log_("Selected " + this.selectedProtocol);
+          this.$$('request-previewer').update();
+        },
+
+
+        /**
+         * Handles the selection of registration ids.
+         */
+        registrationIdChangeHandler: function(e) {
+          var action = e.detail.action;
+          var regId = e.detail.regId;
+
+          if (action === 'remove') {
+            this.splice('registrationIds',
+                this.registrationIds.indexOf(regId), 1);
+          } else if (action === 'add') {
+            this.push('registrationIds', regId);
+          }
+          this.log_(this.registrationIds);
+        },
+
+
+        /**
+         * Handles input in the custom reg ID input field.
+         */
+        customListHandler: function(e) {
+          this.customIds = e.detail.ids;
+          this.log_(this.customIds);
+        },
+
+
+        /********************************************
+         * PRIVATE FUNCTIONS
+         ********************************************/
+
+        /**
+         * Returns true iff selectedProtocol is the same as the desiredProtocol.
+         */
+        isProtocol_: function(selectedProtocol, desiredProtocol) {
+          return selectedProtocol === desiredProtocol;
+        },
+
+
+        /**
+         * Sets the state of the application based on the passed message type.
+         */
+        setState_: function(selectedType) {
+          this.registrationIds = [];
+
+          switch (selectedType) {
+            case 'unicast':
+              this.disableXmpp = false;
+              this.regIdLimit_ = 1;
+              this.$$('recipients-chooser').enableAllRegIds_();
+              this.setCustomListLabel_('Or, paste one registration ID');
+              break;
+            case 'multicast':
+              this.disableXmpp = true;
+              this.regIdLimit_ = -1;
+              this.$$('recipients-chooser').enableAllRegIds_();
+              this.setCustomListLabel_('Paste more registration IDs');
+              break;
+            case 'pubsub':
+              this.disableXmpp = false;
+              this.regIdLimit_ = 0;
+              this.$$('recipients-chooser').disableAllRegIds_();
+              this.setCustomListLabel_('Paste a topic. eg. /topic/myTopic');
+              break;
+            case 'notification_group':
+              this.disableXmpp = false;
+              this.regIdLimit_ = 0;
+              this.$$('recipients-chooser').disableAllRegIds_();
+              this.setCustomListLabel_('Paste a notification group key');
+              break;
+          }
+        },
+
+
+        /**
+         * Sets the label of the textarea in recipients card.
+         */
+        setCustomListLabel_: function(text) {
+          this.$$('recipients-chooser').setCustomListLabel_(text);
+        },
+
+
+        /**
+         * Show a new toast with the passed text.
+         */
+        showToast_: function(text) {
+          if (text.type === 'show-toast') {
+            text = text.detail;
+          }
+          this.$.toast.text = text;
+          this.$.toast.show();
+        },
+
+
+        /********************************************
+         * LIFECYCLE FUNCTIONS
+         ********************************************/
+
+
+        attached: function() {
+          // How many total IDs can the user select?
+          // -1 = multicast
+          this.regIdLimit_ = 1;
+        }
+      });
+    })();
+  </script>
+
+</dom-module>

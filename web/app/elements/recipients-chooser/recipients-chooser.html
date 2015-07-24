@@ -1,0 +1,275 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+
+<dom-module id="recipients-chooser">
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    #regIdsList paper-item.paper-item-0 {
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+
+    #regIdsList paper-item span {
+      margin-left: 10px;
+    }
+
+    #regIdsList paper-item-body [secondary] {
+      color: #757575;
+      margin-left: 30px;
+    }
+
+  </style>
+
+  <template>
+    <iron-collapse id="regIdsList">
+      <template is="dom-repeat" items="{{recipients}}">
+        <paper-item>
+          <paper-item-body two-line>
+            <div>
+              <paper-checkbox on-change="registrationIdChangeHandler"><span>{{item.reg_id}}</span></paper-checkbox>
+            </div>
+            <div secondary><span>{{item.data}}</span></div>
+          </paper-item-body>
+        </paper-item>
+      </template>
+    </iron-collapse>
+
+    <paper-textarea id="customList" label="Or, paste one registration ID" on-value-changed="customListHandler"></paper-textarea>
+    <!-- The page autofocuses (and hence scrolls) to the textarea above. This
+         field is added to prevent that. -->
+    <input type="hidden" autofocus="true" />
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'recipients-chooser',
+
+
+        properties: {
+
+          limit: {
+            type: Number,
+            value: 1
+          },
+
+          registrationIdsLength: {
+            type: Number,
+            value: 0
+          }
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('recipients-chooser', msg);
+        },
+
+
+        /**
+         * Handles the selection of registration ids.
+         */
+        registrationIdChangeHandler: function(e) {
+          var el = e.target;
+          var selected_id = el.textContent.trim();
+
+          if (!el.checked) {
+            // Deselecting, remove from the array
+            this.log_('Removing reg id');
+            this.fire('reg-id-changed', {
+              action: 'remove',
+              regId: selected_id
+            });
+          } else {
+            switch (this.limit) {
+              case -1:
+                // Multicast message
+                this.log_('Multicast message selected, adding this ID');
+                this.fire('reg-id-changed', {
+                  action: 'add',
+                  regId: selected_id
+                });
+                break;
+              case 0:
+                // Pubsub or Notification group
+                this.log_('Pubsub or notif group selected, NOT adding.');
+                el.checked = false;
+                this.fire('show-toast', 'You cannot choose registration IDs ' +
+                                        'in Pubsub or notification groups.');
+                break;
+              case 1:
+                // Unicast
+                this.log_('Unicast message type selected.');
+
+                if (this.registrationIdsLength === 0) {
+                  this.log_('\tAdding this ID');
+                  this.fire('reg-id-changed', {
+                    action: 'add',
+                    regId: selected_id
+                  });
+                } else {
+                  this.log_('\tNOT adding this ID');
+                  el.checked = false;
+                  this.fire('show-toast', 'You cannot choose more than one ' +
+                                          'reg IDs in a unicast message.');
+                }
+                break;
+            }
+          }
+        },
+
+
+        /**
+         * Handles input in the custom reg ID input field.
+         */
+        customListHandler: function(e) {
+          var customIds = e.detail.value.split('\n').filter(function(line) {
+                                    return line.trim() !== '';
+                                  });
+          this.fire('custom-ids', { ids: customIds });
+        },
+
+
+        /********************************************
+         * PRIVATE FUNCTIONS
+         ********************************************/
+
+
+        /**
+         * Deselects all selected registration IDs.
+         */
+        deselectAllRegIds_: function() {
+          this.log_('Deselecting all recipients.');
+          Polymer.dom(this.$.regIdsList)
+                 .querySelectorAll('paper-checkbox[checked]')
+                 .map(function(checkbox) {
+                   checkbox.checked = false;
+                 });
+        },
+
+
+        /**
+         * Disables the option to select any registration IDs.
+         */
+        disableAllRegIds_: function() {
+          this.log_('Disabling all recipients.');
+          this.hideRegIdList_();
+
+          Polymer.dom(this.$.regIdsList)
+                 .querySelectorAll('paper-checkbox')
+                 .map(function(checkbox) {
+                   checkbox.disabled = true;
+                 });
+        },
+
+
+        /**
+         * Enables the option to select any registration IDs.
+         */
+        enableAllRegIds_: function() {
+          this.log_('Enabling all recipients.');
+          this.showRegIdList_();
+
+          Polymer.dom(this.$.regIdsList)
+                 .querySelectorAll('paper-checkbox[disabled]')
+                 .map(function(checkbox) {
+                   checkbox.disabled = false;
+                 });
+        },
+
+
+        /**
+         * Empties the custom list of registration IDs.
+         */
+        emptyCustomList_: function() {
+          this.log_('Emptying custom list');
+          this.$.customList.value = "";
+        },
+
+
+        /**
+         * Hides the list of all registrations Ids
+         */
+        hideRegIdList_: function() {
+          this.$.regIdsList.opened = false;
+        },
+
+
+        /**
+         * Shows the list of all registrations Ids
+         */
+        showRegIdList_: function() {
+          this.$.regIdsList.opened = true;
+        },
+
+
+        /**
+         * Sets the label of the textarea in recipients card.
+         */
+        setCustomListLabel_: function(text) {
+          this.$.customList.label = text;
+        },
+
+
+        /********************************************
+         * LIFECYCLE FUNCTIONS
+         ********************************************/
+
+
+        attached: function() {
+          // The list of all available registration IDs
+          this.recipients = [];
+
+          var reg_ids = ['Lorem ipsum Ad consectetur in veniam.',
+                         'Lorem ipsum Irure cupidatat qui minim in.',
+                         'Lorem ipsum Esse cupidatat in cupidatat sunt.',
+                         'Lorem ipsum Nulla cupidatat fugiat nulla nostrud.',
+                         'Lorem ipsum Excepteur dolor cillum.',
+                         'Lorem ipsum Minim esse Excepteur non.',
+                         'Lorem ipsum Esse culpa ad et minim.'];
+          var custom_data = JSON.stringify({ "clicks": "1", "ref": "google" });
+
+          for (var i = 0; i < reg_ids.length; i++) {
+              this.push('recipients', {
+                  reg_id: reg_ids[Math.ceil(Math.random()*reg_ids.length)-1],
+                  data: custom_data
+              });
+          }
+
+          // Show the list of registration IDs by default
+          this.showRegIdList_();
+        }
+
+      });
+    })();
+  </script>
+
+</dom-module>

@@ -12,27 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM node:slim
-
-# -----------------
-# Copy files over
-# -----------------
-
-RUN mkdir -p /src/gcm-playground/web/
-ADD . /src/gcm-playground/web/
-WORKDIR /src/gcm-playground/web/
+FROM golang:1.4.2-wheezy
 
 
 # -----------------
 # Install dependencies
 # -----------------
 
-RUN npm install -g gulp
-RUN npm install -g bower
+RUN apt-get update && apt-get install -y build-essential
+
+
+# -----------------
+# Install Go dependencies
+# -----------------
+
+RUN go get github.com/gorilla/mux
+
+# -----------------
+# Copy files over
+# -----------------
+
+RUN mkdir -p /src/gcm-playground/server/
+ADD . /src/gcm-playground/server/
+WORKDIR /src/gcm-playground/server/
 
 
 # -----------------
 # Set the server
 # -----------------
 
-EXPOSE 3000
+EXPOSE 4260
