@@ -39,6 +39,16 @@ The ports that are being used are:
 - `5000` - Logstash server, receives logs from logstash forwarders
 
 
+Chrome App
+-----------
+
+Included in `chrome/` is a Chrome app that can help you get started with the playground. To start using it, you'll need to get the Project ID from your Google Cloud Console, and have the GCM Playground running.
+
+The Chrome app lets you:
+- Register the client with the backend
+- Receive messages sent through the playground
+
+
 Support
 -------
 
