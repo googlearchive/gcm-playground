@@ -19,52 +19,50 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/mattn/go-sqlite3"
+
+	"./lib"
+	"./models"
+	"./routes"
 )
 
-// Person is a user who has visited the page.
-type Person struct {
-	name  string // Name of the person
-	count int    // Number of times this person has visited
-}
+// What port should the server run on
+const port string = "4260"
 
-func (p *Person) incrCount() {
-	p.count++
-}
+var (
+	// The name of the database to connect to
+	databaseName = "data.db"
 
-// Holds the mapping of the person to the person object
-var person_req_counts = make(map[string]*Person)
+	// Print logging
+	debug = true
+)
 
-// Handle requests for the homepage.
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "/person/:name")
-}
-
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := vars["name"]
-
-	person, ok := person_req_counts[name]
-
-	if ok {
-		person.incrCount()
-		resp := fmt.Sprintf("<h1>%s has visited %v times.</h1>", name, person.count)
-		fmt.Fprintln(w, resp)
-	} else {
-		person_req_counts[name] = &Person{name, 1}
-		fmt.Fprintln(w, "<h1>Hello "+name+"</h1>")
+func InitDb() (gorm.DB) {
+	// Database connection
+	// Run `go run migrate/migrate.go` before running the server, or after making
+	// changes to the models.
+	db, err := gorm.Open("sqlite3", databaseName)
+	if err != nil {
+		log.Fatal(err)
 	}
+	db.DB()
+	db.AutoMigrate(&models.Client{})
+	db.LogMode(debug) // Helps with debugging
+
+	// Database Connections for each package
+	models.InitializeDb(db)
+	routes.InitializeDb(db)
+
+	return db
 }
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/person/{name}", HelloHandler)
+	InitDb()
 
-	http.Handle("/", r)
-
-	log.Println("Started, serving at 4260")
-	err := http.ListenAndServe(":4260", nil)
+	// Start the server
+	log.Println(fmt.Sprintf("Started, serving at port %v", port))
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), lib.Handler())
 	if err != nil {
 		log.Fatal("ListenAndServe: " + err.Error())
 	}
