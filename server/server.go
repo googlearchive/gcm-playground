@@ -38,9 +38,9 @@ var (
 	debug = true
 )
 
-func InitDb() (gorm.DB) {
+func InitDb() gorm.DB {
 	// Database connection
-	// Run `go run migrate/migrate.go` before running the server, or after making
+	// Run `go run migrate.go` before running the server, or after making
 	// changes to the models.
 	db, err := gorm.Open("sqlite3", databaseName)
 	if err != nil {

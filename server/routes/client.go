@@ -63,7 +63,7 @@ func ClientNew(w http.ResponseWriter, r *http.Request) {
 
 	if !ExistsInDb(client.RegistrationId) {
 		db.Create(&client)
-		log.Printf("Client #%d created", client.RegistrationId)
+		// log.Printf("Client #%d created", client.RegistrationId)
 	}
 	w.WriteHeader(http.StatusCreated)
 	sendJSON(w, client)

@@ -27,11 +27,11 @@ import (
 )
 
 var (
-	server    		*httptest.Server
-	clientUrl 		string
-	registerUrl 	string
+	server        *httptest.Server
+	clientUrl     string
+	registerUrl   string
 	unregisterUrl string
-	db 						gorm.DB
+	db            gorm.DB
 )
 
 func init() {
@@ -45,7 +45,7 @@ func init() {
 }
 
 func teardownTest() {
-	// db.Exec("DELETE FROM clients;")
+	db.Exec("DELETE FROM clients;")
 }
 
 func assertEqual(t *testing.T, v, e interface{}) {
@@ -54,6 +54,7 @@ func assertEqual(t *testing.T, v, e interface{}) {
 	}
 }
 
+// Make an HTTP request
 func MakeRequest(method string, url string, body string) (resp *http.Response, err error) {
 	request, _ := http.NewRequest(method, url, strings.NewReader(body))
 	request.Header.Add("Content-Type", "application/json")
@@ -66,8 +67,21 @@ func RegisterClient(body string) (resp *http.Response, err error) {
 	return MakeRequest("POST", registerUrl, body)
 }
 
+// Makes a request with the passed data to unregister a new client
 func UnregisterClient(body string) (resp *http.Response, err error) {
 	return MakeRequest("POST", unregisterUrl, body)
+}
+
+// Test getting a list of all clients
+func TestListClients(t *testing.T) {
+	defer teardownTest()
+
+	request, err := http.NewRequest("GET", clientUrl, nil)
+	res, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Error(err)
+	}
+	assertEqual(t, res.StatusCode, http.StatusOK)
 }
 
 // Test registering a client
@@ -135,14 +149,38 @@ func TestUnregisterClient(t *testing.T) {
 	assertEqual(t, res.StatusCode, http.StatusNoContent)
 }
 
-// Test getting a list of all clients
-func TestListClients(t *testing.T) {
+// Test unregistering a client that's not registered
+func TestUnregisterClientNotRegistered(t *testing.T) {
 	defer teardownTest()
 
-	request, err := http.NewRequest("GET", clientUrl, nil)
-	res, err := http.DefaultClient.Do(request)
+	clientJson := `{"registration_id": "Dolor qui occaecat proident."}`
+	res, err := UnregisterClient(clientJson)
 	if err != nil {
 		t.Error(err)
 	}
-	assertEqual(t, res.StatusCode, http.StatusOK)
+	assertEqual(t, res.StatusCode, http.StatusNotFound)
+}
+
+// Test unregistering multiple clients
+func TestUnregisterMultipleClients(t *testing.T) {
+	defer teardownTest()
+
+	testData := []string{
+		`{"registration_id": "900150983cd24fb0d6963f7d28e17f72"}`,
+		`{"registration_id": "f0e57d481af6ac8aaad01a78eaa394d9"}`,
+		`{"registration_id": "0be4a67ee30268d79bfb3709702ec59c"}`,
+		`{"registration_id": "bc5a1138d76b4aa49ea6f826320dc6e5"}`,
+	}
+
+	for _, clientJson := range testData {
+		RegisterClient(clientJson)
+	}
+
+	for _, clientJson := range testData {
+		res, err := UnregisterClient(clientJson)
+		if err != nil {
+			t.Error(err)
+		}
+		assertEqual(t, res.StatusCode, http.StatusNoContent)
+	}
 }
