@@ -16,15 +16,15 @@
 # The Web UI that consumes gcm-go and provides a playground.
 ########################################################################
 
-# web:
-#   build: ./web
-#   command: gulp serve
-#   ports:
-#     - "3000:3000"
-#   volumes:
-#     - web/:/src/gcm-playground/web/
-#   links:
-#     - server
+web:
+  build: ./web
+  command: gulp serve
+  ports:
+    - "3000:3000"
+  volumes:
+    - web/:/src/gcm-playground/web/
+  links:
+    - server
 
 
 # ########################################################################
