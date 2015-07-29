@@ -15,56 +15,145 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-// Person is a user who has visited the page.
-type Person struct {
-	name  string // Name of the person
-	count int    // Number of times this person has visited
+// What port should the server run on
+const port string = "4260"
+
+var (
+	// The name of the database to connect to
+	databaseName = "data.db"
+
+	// Print logging
+	debug = true
+
+	// Current database connection
+	db gorm.DB
+)
+
+type Client struct {
+	RegistrationToken string `sql:"not null;unique" json:"registration_token" gorm:"primary_key"`
+	StringIdentifier  string `json:"string_identifier"`
 }
 
-func (p *Person) incrCount() {
-	p.count++
+type ClientCollection struct {
+	Clients []Client `json:"clients"`
 }
 
-// Holds the mapping of the person to the person object
-var person_req_counts = make(map[string]*Person)
-
-// Handle requests for the homepage.
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "/person/:name")
+// Checks if the passed registration_token exists in the database
+func ClientExistsInDb(RegistrationToken string) bool {
+	count := 0
+	db.Model(Client{}).Where("registration_token = ?", RegistrationToken).Count(&count)
+	return count != 0
 }
 
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := vars["name"]
+func InitDb() {
+	// Database connection
+	var err error
+	db, err = gorm.Open("sqlite3", databaseName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.DB()
+	db.AutoMigrate(&Client{})
+	db.LogMode(debug) // Helps with debugging
+}
 
-	person, ok := person_req_counts[name]
+func sendJSON(w http.ResponseWriter, obj interface{}) {
+	json.NewEncoder(w).Encode(obj)
+}
 
-	if ok {
-		person.incrCount()
-		resp := fmt.Sprintf("<h1>%s has visited %v times.</h1>", name, person.count)
-		fmt.Fprintln(w, resp)
+func sendUnprocessableEntity(w http.ResponseWriter, err error) error {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusNotAcceptable)
+	return json.NewEncoder(w).Encode(err)
+}
+
+// Handle requests to get all the clients in the database.
+func ListClients(w http.ResponseWriter, r *http.Request) {
+	var clients []Client
+	if err := db.Find(&clients).Error; err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	clientArray := ClientCollection{Clients: clients}
+	sendJSON(w, clientArray)
+}
+
+// Handle request to save a new client.
+// The body of this request must contain a `registration_token`.
+// Optionally, the body can contain a `string_identifier` string.
+func CreateClient(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := r.Body.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Decode the passed body into the struct.
+	var client Client
+	if err := json.Unmarshal(body, &client); err != nil {
+		sendUnprocessableEntity(w, err)
+	}
+
+	if !ClientExistsInDb(client.RegistrationToken) {
+		db.Create(&client)
+	}
+	w.WriteHeader(http.StatusCreated)
+	sendJSON(w, client)
+}
+
+// Handle request to delete a client.
+// The URL of this request must contain a `registration_token`.
+func DeleteClient(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	registration_token := params["registration_token"]
+
+	client := Client{registration_token, ""}
+
+	if !ClientExistsInDb(registration_token) {
+		w.WriteHeader(http.StatusNotFound)
 	} else {
-		person_req_counts[name] = &Person{name, 1}
-		fmt.Fprintln(w, "<h1>Hello "+name+"</h1>")
+		db.Delete(&Client{}, "registration_token = ?", client.RegistrationToken)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
+// Route handler for the server
+func Handler() *mux.Router {
+	router := mux.NewRouter()
+	// GET /clients
+	// List all registered registration IDs
+	router.HandleFunc("/clients", ListClients).Methods("GET")
+	// POST /clients
+	// Add a new client
+	router.HandleFunc("/clients", CreateClient).Methods("POST")
+	// DELETE /clients
+	// Remove an existing client
+	router.HandleFunc("/clients/{registration_token}", DeleteClient).Methods("DELETE")
+
+	return router
+}
+
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/person/{name}", HelloHandler)
+	InitDb()
 
-	http.Handle("/", r)
-
-	log.Println("Started, serving at 4260")
-	err := http.ListenAndServe(":4260", nil)
+	// Start the server
+	log.Println(fmt.Sprintf("Started, serving at port %v", port))
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), Handler())
 	if err != nil {
 		log.Fatal("ListenAndServe: " + err.Error())
 	}

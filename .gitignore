@@ -56,3 +56,5 @@ test/temp
 web/bower_components
 web/.tmp
 test/bower_components/
+
+*.db
