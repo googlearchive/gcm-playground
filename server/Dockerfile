@@ -26,7 +26,10 @@ RUN apt-get update && apt-get install -y build-essential
 # Install Go dependencies
 # -----------------
 
-RUN go get github.com/gorilla/mux
+RUN go get -u github.com/gorilla/mux
+RUN go get -u github.com/jinzhu/gorm
+RUN go get -u github.com/mattn/go-sqlite3
+
 
 # -----------------
 # Copy files over
@@ -42,3 +45,6 @@ WORKDIR /src/gcm-playground/server/
 # -----------------
 
 EXPOSE 4260
+
+# Run the migrations
+RUN go run migrate/migrate.go
