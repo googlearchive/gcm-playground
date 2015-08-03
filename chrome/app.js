@@ -1,16 +1,18 @@
 // Copyright 2015 Google Inc. All Rights Reserved.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the 'License');
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an 'AS IS' BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+var registrationToken = '';
 
 /**
  * Sets the status of the app to the passed text.
@@ -31,9 +33,10 @@ function setAppServerStatus(text) {
 /**
  * Handles the case when the client is already registered.
  */
-function handleAlreadyRegistered(regId) {
-  chrome.storage.local.get('regId', function(result) {
-    setStatus('Already registered. Registration Id:\n' + result['regId']);
+function handleAlreadyRegistered() {
+  chrome.storage.local.get('regToken', function(result) {
+    registrationToken = result['regToken'];
+    setStatus('Already registered. Registration token:\n' + registrationToken);
     document.getElementById('register').disabled = true;
     document.getElementById('unregister').disabled = false;
   });
@@ -50,7 +53,7 @@ function disableButtons() {
 
 
 /**
- * Call the passed cb with `true` if the client is registered, false otherwise.
+ * Call cb with `true` if the client is registered, false otherwise.
  */
 function isRegistered(cb) {
   chrome.storage.local.get('registered', function(result) {
@@ -60,14 +63,43 @@ function isRegistered(cb) {
 
 
 /**
- * Register the passed registrationId with our app server.
+ * Make an HTTP request.
  */
-function sendRegistrationId(registrationId, cb) {
-  // TODO(karangoel): actually implement this
-  console.log('Pretending to make a HTTP request.');
-  var appServerHost = document.getElementById('appServerHost').value;
-  console.log('Pretending like it succeeded');
-  cb(true);
+function makeRequest(method, url, body, expectedStatus, cb) {
+  var xhr = new XMLHttpRequest();
+  xhr.open(method, url, true);
+  xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+  xhr.send(body);
+
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+      cb(xhr.status === expectedStatus, xhr.responseText);
+    }
+  }
+}
+
+
+/**
+ * Register a GCM registration token with the app server.
+ */
+function registerWithAppServer(regToken, cb) {
+  var body = JSON.stringify({registration_token: regToken });
+  var url = document.getElementById('appServerHost').value + 'clients';
+  makeRequest('POST', url, body, 201, function(status, err) {
+    cb(status, err);
+  });
+}
+
+
+/**
+ * Unregister a registration token from the app server.
+ */
+function unregisterFromAppServer(cb) {
+  var url = document.getElementById('appServerHost').value +
+            'clients/' + registrationToken;
+  makeRequest('DELETE', url, '', 204, function(status, err) {
+    cb(status, err);
+  });
 }
 
 
@@ -95,7 +127,6 @@ function register() {
  */
 function unregister() {
   chrome.gcm.unregister(unregisterCallback);
-  // TODO(karangoel): also unregister from the server
   setStatus('Unregistering...');
   disableButtons();
 }
@@ -104,26 +135,27 @@ function unregister() {
 /**
  * Called when GCM server responds to a registration request.
  */
-function registerCallback(registrationId) {
+function registerCallback(regToken) {
   if (chrome.runtime.lastError) {
     // Registration failed, handle the error and retry later.
     document.getElementById('register').disabled = false;
     return setStatus('FAILED: ' + chrome.runtime.lastError.message);
   }
 
-  setStatus('Registration SUCCESSFUL. Registration ID:\n' + registrationId);
+  setStatus('Registration SUCCESSFUL. Registration ID:\n' + regToken);
+
+  registrationToken = regToken;
 
   // Notify the app server about this new registration
-  sendRegistrationId(registrationId, function(succeed) {
+  registerWithAppServer(registrationToken, function(succeed, err) {
     if (succeed) {
-      setAppServerStatus('Registration with app server COMPLETED.');
+      setAppServerStatus('Registration with app server SUCCESSFUL.');
       chrome.storage.local.set({ registered: true });
-      chrome.storage.local.set({ regId: registrationId });
+      chrome.storage.local.set({ regToken: registrationToken });
       document.getElementById('register').disabled = true;
       document.getElementById('unregister').disabled = false;
     } else {
-      // TODO(karangoel): Show why it failed (passed in the callback)
-      setAppServerStatus('Registration with app server FAILED.');
+      setAppServerStatus('Registration with app server FAILED: ' + err);
       document.getElementById('register').disabled = false;
     }
   });
@@ -142,7 +174,17 @@ function unregisterCallback() {
   }
 
   setStatus('Unregistration SUCCESSFUL');
-  chrome.storage.local.remove([ 'registered', 'regId' ]);
+  chrome.storage.local.remove([ 'registered', 'regToken' ]);
+
+  // Notify the app server about this unregistration
+  unregisterFromAppServer(function(succeed, err) {
+    if (succeed) {
+      setAppServerStatus('Unregistration with the app server SUCCESSFUL.');
+      registrationToken = '';
+    } else {
+      setAppServerStatus('Unregistration with app server FAILED: ' + err);
+    }
+  });
 }
 
 

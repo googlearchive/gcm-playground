@@ -18,6 +18,7 @@
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
@@ -86,6 +87,17 @@
 
     #parameters #priority {
       width: 40%;
+    }
+
+    #preview paper-button {
+      width: 250px;
+      background-color: #373b50;
+      color: #fff;
+    }
+
+    #preview paper-button[disabled] {
+      color: #313238 !important;
+      background: #afb1b9 !important;
     }
 
   </style>
@@ -177,6 +189,12 @@
             <paper-tooltip for="restricted_package_name" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
           </div>
 
+          <div class="line">
+            <paper-input id="message_id" label="Message ID" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
+            <paper-icon-button icon="icons:autorenew" style="width: 10%;" on-click="newMessageId_" disabled="{{httpSelected}}"></paper-icon-button>
+            <paper-tooltip for="message_id" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
+          </div>
+
           <div class="priority">
             <div>Priority:</div><br>
             <paper-slider id="priority" pin snaps max="10" step="1" value="1"></paper-slider>
@@ -189,6 +207,11 @@
       <paper-material elevation="2" id="preview">
         <h3>Request Preview</h3>
         <request-previewer http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}"></request-previewer>
+
+        <paper-button raised class="primary" id="sendBtn" on-click="send_">
+          <iron-icon icon="check"></iron-icon>
+          Send Message
+        </paper-button>
       </paper-material>
 
       <paper-toast id="toast" text="" visible="false"></paper-toast>
@@ -208,6 +231,12 @@
             value: function() {
               return [];
             }
+          },
+
+          // The message ID for an XMPP message
+          messageId: {
+            type: String,
+            value: ''
           },
 
           // List of custom registration IDs, topic or notification group
@@ -230,7 +259,7 @@
           // The protocol that is selected right now
           selectedProtocol: {
             type: String,
-            value: 'unicast'
+            value: ''
           },
 
           // True if the selected protocol is XMPP
@@ -343,6 +372,14 @@
 
 
         /**
+         * Generate and populate the message ID field with a random one
+         */
+        newMessageId_: function() {
+          this.messageId = Math.random().toString(36).substr(2, 20);
+        },
+
+
+        /**
          * Sets the state of the application based on the passed message type.
          */
         setState_: function(selectedType) {
@@ -397,6 +434,21 @@
         },
 
 
+        /**
+         * Send a message
+         */
+        send_: function() {
+          // TODO(karangoel): Implement this
+          // Serialize the form
+          // Validate all the fields
+          // If validation failed, show errors
+          // Else make a POST request to the server, disable the button
+          // Wait for response, and show it, enable the button
+          this.showToast_('Sending message ID: ' + this.$.message_id.value);
+          // this.$.sendBtn.disabled = true;
+        },
+
+
         /********************************************
          * LIFECYCLE FUNCTIONS
          ********************************************/
@@ -406,6 +458,8 @@
           // How many total IDs can the user select?
           // -1 = multicast
           this.regIdLimit_ = 1;
+
+          this.newMessageId_();
         }
       });
     })();
