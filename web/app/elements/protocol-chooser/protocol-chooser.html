@@ -28,8 +28,11 @@
 
   <template>
     <paper-radio-group id="protocol" on-change="protocolChangeHandler">
-      <paper-radio-button name="http" disabled="{{disableHttp}}">HTTP</paper-radio-button>
-      <paper-radio-button name="xmpp" disabled="{{disableXmpp}}">XMPP</paper-radio-button>
+      <paper-radio-button name="http" id="http" disabled="{{disableHttp}}">HTTP</paper-radio-button>
+      <paper-radio-button name="xmpp" id="xmpp" disabled="{{disableXmpp}}">XMPP</paper-radio-button>
+
+      <paper-tooltip for="http" margin-top="-10">Downstream only, cloud-to-device up to 4KB of data</paper-tooltip>
+      <paper-tooltip for="xmpp" margin-top="-10">Upstream and downstream (device-to-cloud, cloud-to-device), up to 4 KB of data</paper-tooltip>
     </paper-radio-group>
   </template>
 

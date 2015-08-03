@@ -21,6 +21,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../message-type-chooser/message-type-chooser.html">
 <link rel="import" href="../protocol-chooser/protocol-chooser.html">
 <link rel="import" href="../recipients-chooser/recipients-chooser.html">
@@ -55,8 +56,8 @@
       margin-bottom: 30px;
     }
 
-    #parameters .notif_line {
-      width: 49%;
+    #parameters .notif_line, #parameters .line {
+      width: 47%;
       display: inline-block;
     }
 
@@ -64,21 +65,15 @@
       margin-left: 10px;
     }
 
-    #parameters .notif_line paper-input, #parameters .notif_line paper-textarea {
+    #parameters .notif_line paper-input, #parameters .notif_line paper-textarea,
+    #parameters .line paper-input, #parameters .line paper-textarea {
       width: 70%;
       margin-left: 10px;
       display: inline-block;
     }
 
-    #parameters paper-input, #parameters paper-textarea {
-      width: 45%;
-      margin-left: 0;
-      margin-right: 10px;
-      display: inline-block;
-    }
-
     #parameters .line {
-      margin-bottom: 40px;
+      margin-bottom: 20px;
     }
 
     #parameters .line span {
@@ -118,84 +113,74 @@
         <section>
           <h4>Notification Payload</h4>
 
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Title"></paper-input>
-          </div>
+          <iron-ajax auto
+                     url="/settings.json"
+                     handleAs="json"
+                     last-response="{{settings}}"
+                     method='GET'>
+          </iron-ajax>
 
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Body"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon icon="icons:d"></iron-icon><paper-input label="Icon"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Sound"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Badge"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon icon="icons:d"></iron-icon><paper-input label="Tag"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon icon="icons:d"></iron-icon><paper-input label="Color"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:android"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Click Action"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Body Loc Key"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-textarea label="Body Loc Args (JSON)"></paper-textarea>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-input label="Title Loc Key"></paper-input>
-          </div>
-
-          <div class="notif_line">
-            <iron-icon icon="icons:d"></iron-icon><iron-icon src="/images/ios.svg"></iron-icon><paper-textarea label="Title Loc Args (JSON)"></paper-textarea>
-          </div>
+          <template is="dom-repeat" items="{{settings.notificationFields_}}" as="field">
+            <div class="notif_line">
+              <template is="dom-if" if="{{field.android}}">
+                <iron-icon icon="icons:android"></iron-icon>
+              </template>
+              <template is="dom-if" if="{{!field.android}}">
+                <iron-icon icon="icons:d"></iron-icon>
+              </template>
+              <template is="dom-if" if="{{field.ios}}">
+                <iron-icon src="/images/ios.svg"></iron-icon>
+              </template>
+              <template is="dom-if" if="{{!field.ios}}">
+                <iron-icon icon="icons:d"></iron-icon>
+              </template>
+              <template is="dom-if" if="{{!field.textarea}}">
+                <paper-input id="{{field.id}}" label="{{field.label}}"></paper-input>
+              </template>
+              <template is="dom-if" if="{{field.textarea}}">
+                <paper-textarea id="{{field.id}}" label="{{field.label}}"></paper-textarea>
+              </template>
+              <paper-tooltip margin-top="-5">{{field.tooltip}}</paper-tooltip>
+            </div>
+          </template>
         </section>
 
         <section>
           <h4>Data Payload</h4>
-          <paper-textarea label="JSON"></paper-textarea>
+          <p><a href="https://developers.google.com/cloud-messaging/server-ref#send-downstream">Learn more about it</a></p>
+          <paper-textarea label="JSON" value='{"score":"3x1"}'></paper-textarea>
         </section>
 
         <section>
           <h4>Other Options</h4>
 
           <div class="line">
-            <paper-toggle-button></paper-toggle-button>
-            <span>Dry Run</span>
-          </div>
-          <div class="line">
             <paper-toggle-button id="delivery_receipt_requested" disabled="{{httpSelected}}"></paper-toggle-button>
             <span>Delivery Receipt Requested</span>
+            <paper-tooltip margin-top="0">This parameter lets the app server request confirmation of message delivery.</paper-tooltip>
           </div>
-          <div class="line">
-            <paper-toggle-button></paper-toggle-button>
-            <span>Delay While Idle</span>
-          </div>
+          <template is="dom-repeat" items="{{settings.optionsFields_}}" as="field">
+            <div class="line">
+              <template is="dom-if" if="{{!field.input}}">
+                <paper-toggle-button id="{{field.id}}"></paper-toggle-button>
+                <span>{{field.label}}</span>
+              </template>
+              <template is="dom-if" if="{{field.input}}">
+                <paper-input label="{{field.label}}" id="{{field.id}}"></paper-input>
+              </template>
+              <paper-tooltip margin-top="0">{{field.tooltip}}</paper-tooltip>
+            </div>
+          </template>
 
-          <paper-input label="Time to Live"></paper-input>
-          <paper-input id="collapse_key" label="Collapse Key"></paper-input>
-          <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
-          <paper-textarea label="Content Available (JSON)"></paper-textarea>
+          <div class="line">
+            <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
+            <paper-tooltip for="restricted_package_name" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
+          </div>
 
           <div class="priority">
             <div>Priority:</div><br>
             <paper-slider id="priority" pin snaps max="10" step="1" value="1"></paper-slider>
+            <paper-tooltip margin-top="0">Sets the priority of the message.</paper-tooltip>
           </div>
 
         </section>
