@@ -91,13 +91,13 @@
 
     #preview paper-button {
       width: 250px;
-      background-color: #373b50;
+      background-color: var(--default-primary-color);
       color: #fff;
     }
 
     #preview paper-button[disabled] {
-      color: #313238 !important;
-      background: #afb1b9 !important;
+      color: var(--disabled-text-color) !important;
+      background: var(--paper-fab-disabled-background) !important;
     }
 
   </style>
@@ -375,6 +375,9 @@
          * Generate and populate the message ID field with a random one
          */
         newMessageId_: function() {
+          // The message ID is not guaranteed to be random.
+          // Ideally, there should be a database of all used IDs to make sure
+          // we don't use and already-used ID.
           this.messageId = Math.random().toString(36).substr(2, 20);
         },
 

@@ -45,6 +45,3 @@ WORKDIR /src/gcm-playground/server/
 # -----------------
 
 EXPOSE 4260
-
-# Run the migrations
-RUN go run migrate/migrate.go

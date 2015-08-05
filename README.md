@@ -38,6 +38,7 @@ The ports that are being used are:
 - `9200` - Elasticsearch JSON interface
 - `5000` - Logstash server, receives logs from logstash forwarders
 
+When using mobile app clients, you would want to tunnel the app server traffic so it's accessible via the public network. To do that, download [ngrok](https://ngrok.com) and run `$ ./ngrok http <IP ADDRESS>:4260`.
 
 Chrome App
 -----------
@@ -48,6 +49,23 @@ The Chrome app lets you:
 - Register the client with the backend
 - Receive messages sent through the playground
 
+Android App
+------------
+
+Included in `android/` is an Android app that can help you get started with the playground. To start using it, you'll need to get the Project ID from your Google Cloud Console, and have the GCM Playground running.
+
+The Chrome app lets you:
+- Register and unregister the client with the backend
+- Receive messages sent through the playground
+
+**Getting Started**
+
+- Follow the [quickstart guide](https://developers.google.com/cloud-messaging/)
+  to set up your project in Android Studio.
+- Run the sample on your Android device.
+- Use the playground web UI to send a message to the registered device.
+- A notification containing the GCM message should be displayed on the
+  device.
 
 Support
 -------
