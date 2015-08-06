@@ -46,14 +46,20 @@
   </style>
 
   <template>
+    <iron-ajax auto
+               url="http://localhost:4260/clients"
+               handleAs="json"
+               last-response="{{recipients}}"
+               method='GET'>
+    </iron-ajax>
     <iron-collapse id="regIdsList">
-      <template is="dom-repeat" items="{{recipients}}">
+      <template is="dom-repeat" items="{{recipients.clients}}">
         <paper-item>
           <paper-item-body two-line>
             <div>
-              <paper-checkbox on-change="registrationIdChangeHandler"><span>{{item.reg_id}}</span></paper-checkbox>
+              <paper-checkbox on-change="registrationIdChangeHandler"><span>{{item.registration_token}}</span></paper-checkbox>
             </div>
-            <div secondary><span>{{item.data}}</span></div>
+            <div secondary><span>{{item.string_identifier}}</span></div>
           </paper-item-body>
         </paper-item>
       </template>
@@ -158,6 +164,21 @@
         },
 
 
+        /**
+         * Returns an array of all selected registration IDs.
+         */
+        getSelectedIds: function() {
+          this.log_('Returning all selected IDs.');
+          var selectedIds_ = [];
+          Polymer.dom(this.$.regIdsList)
+                 .querySelectorAll('paper-checkbox[checked]')
+                 .map(function(checkbox) {
+                   selectedIds_.push(checkbox.innerText.trim());
+                 });
+          return selectedIds_;
+        },
+
+
         /********************************************
          * PRIVATE FUNCTIONS
          ********************************************/
@@ -247,22 +268,6 @@
         attached: function() {
           // The list of all available registration IDs
           this.recipients = [];
-
-          var reg_ids = ['Lorem ipsum Ad consectetur in veniam.',
-                         'Lorem ipsum Irure cupidatat qui minim in.',
-                         'Lorem ipsum Esse cupidatat in cupidatat sunt.',
-                         'Lorem ipsum Nulla cupidatat fugiat nulla nostrud.',
-                         'Lorem ipsum Excepteur dolor cillum.',
-                         'Lorem ipsum Minim esse Excepteur non.',
-                         'Lorem ipsum Esse culpa ad et minim.'];
-          var custom_data = JSON.stringify({ "clicks": "1", "ref": "google" });
-
-          for (var i = 0; i < reg_ids.length; i++) {
-              this.push('recipients', {
-                  reg_id: reg_ids[Math.ceil(Math.random()*reg_ids.length)-1],
-                  data: custom_data
-              });
-          }
 
           // Show the list of registration IDs by default
           this.showRegIdList_();

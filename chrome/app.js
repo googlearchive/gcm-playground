@@ -192,6 +192,10 @@ window.onload = function() {
   document.getElementById('register').onclick = register;
   document.getElementById('unregister').onclick = unregister;
 
+  chrome.gcm.onMessage.addListener(function(message) {
+    console.log('chrome.gcm.onMessage', message);
+  });
+
   isRegistered(function(registered) {
     if (registered) {
       handleAlreadyRegistered();

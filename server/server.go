@@ -21,16 +21,22 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/cors"
+	"github.com/google/go-gcm"
 )
 
 // What port should the server run on
 const port string = "4260"
 
 var (
+	// API key from Cloud console
+	apiKey = ""
+
 	// The name of the database to connect to
 	databaseName = "data.db"
 
@@ -48,6 +54,15 @@ type Client struct {
 
 type ClientCollection struct {
 	Clients []Client `json:"clients"`
+}
+
+type DownstreamMessage struct {
+	Protocol string `json:"protocol"`
+	Message  json.RawMessage `json:"message"`
+}
+
+type HttpError struct {
+	Error string `json:"error"`
 }
 
 // Checks if the passed registration_token exists in the database
@@ -132,20 +147,81 @@ func DeleteClient(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Handle request to send a new message.
+func SendMessage(w http.ResponseWriter, r *http.Request) {
+	// TODO(karangoel): Implementation incomplete
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := r.Body.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Decode the passed body into the struct.
+	var message DownstreamMessage
+	if err := json.Unmarshal(body, &message); err != nil {
+		sendUnprocessableEntity(w, err)
+		return
+	}
+
+	protocol := strings.ToLower(message.Protocol)
+
+	if protocol == "http" {
+		// Send HTTP message
+		var m gcm.HttpMessage
+		if err := json.Unmarshal(message.Message, &m); err != nil {
+			log.Println("Message Unmarshal error")
+			log.Printf("%+v", err)
+			sendUnprocessableEntity(w, err)
+			return
+		}
+
+		res, sendErr := gcm.SendHttp(apiKey, m)
+		if sendErr != nil {
+			log.Println("Message send error")
+			log.Printf("%+v", sendErr)
+			w.WriteHeader(http.StatusInternalServerError)
+			sendJSON(w, sendErr)
+			return
+		}
+
+		log.Printf("%+v", res)
+		w.WriteHeader(http.StatusOK)
+		sendJSON(w, res)
+	} else if protocol == "xmpp" {
+		// Send XMPP message
+		// TODO(karangoel): Implement this.
+		w.WriteHeader(http.StatusOK)
+	} else {
+		// Error
+		w.WriteHeader(http.StatusBadRequest)
+		sendJSON(w, &HttpError{"protocol should be HTTP or XMPP only."})
+	}
+}
+
 // Route handler for the server
-func Handler() *mux.Router {
+func Handler() http.Handler {
 	router := mux.NewRouter()
+
 	// GET /clients
 	// List all registered registration IDs
 	router.HandleFunc("/clients", ListClients).Methods("GET")
+
 	// POST /clients
 	// Add a new client
 	router.HandleFunc("/clients", CreateClient).Methods("POST")
+
 	// DELETE /clients
 	// Remove an existing client
 	router.HandleFunc("/clients/{registration_token}", DeleteClient).Methods("DELETE")
 
-	return router
+	// POST /message
+	// Send a new message
+	router.HandleFunc("/message", SendMessage).Methods("POST")
+
+	return cors.Default().Handler(router)
 }
 
 func main() {

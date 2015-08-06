@@ -111,12 +111,12 @@
 
       <paper-material elevation="2">
         <h3>Step 2: Select Protocol</h3>
-        <protocol-chooser disable-http="{{disableHttp}}" disable-xmpp="{{disableXmpp}}"></protocol-chooser>
+        <protocol-chooser id="protocolChooser" disable-http="{{disableHttp}}" disable-xmpp="{{disableXmpp}}"></protocol-chooser>
       </paper-material>
 
       <paper-material elevation="2">
         <h3>Step 3: Select Targets</h3>
-        <recipients-chooser limit$="{{regIdLimit_}}" registration-ids-length$="{{registrationIds.length}}"></recipients-chooser>
+        <recipients-chooser id="recipientsChooser" limit="{{regIdLimit_}}" registration-ids-length$="{{registrationIds.length}}"></recipients-chooser>
       </paper-material>
 
       <paper-material elevation="2" id="parameters">
@@ -125,6 +125,7 @@
         <section>
           <h4>Notification Payload</h4>
 
+          <!-- Get form settings -->
           <iron-ajax auto
                      url="/settings.json"
                      handleAs="json"
@@ -160,14 +161,14 @@
         <section>
           <h4>Data Payload</h4>
           <p><a href="https://developers.google.com/cloud-messaging/server-ref#send-downstream">Learn more about it</a></p>
-          <paper-textarea label="JSON" value='{"score":"3x1"}'></paper-textarea>
+          <paper-textarea id="data" label="JSON"></paper-textarea>
         </section>
 
         <section>
           <h4>Other Options</h4>
 
           <div class="line">
-            <paper-toggle-button id="delivery_receipt_requested" disabled="{{httpSelected}}"></paper-toggle-button>
+            <paper-toggle-button id="deliveryReceiptRequested" disabled="{{httpSelected}}"></paper-toggle-button>
             <span>Delivery Receipt Requested</span>
             <paper-tooltip margin-top="0">This parameter lets the app server request confirmation of message delivery.</paper-tooltip>
           </div>
@@ -185,14 +186,14 @@
           </template>
 
           <div class="line">
-            <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
-            <paper-tooltip for="restricted_package_name" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
+            <paper-input id="restrictedPackageName" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
+            <paper-tooltip for="restrictedPackageName" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
           </div>
 
           <div class="line">
-            <paper-input id="message_id" label="Message ID" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
+            <paper-input id="messageId" label="Message ID" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
             <paper-icon-button icon="icons:autorenew" style="width: 10%;" on-click="newMessageId_" disabled="{{httpSelected}}"></paper-icon-button>
-            <paper-tooltip for="message_id" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
+            <paper-tooltip for="messageId" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
           </div>
 
           <div class="priority">
@@ -206,7 +207,18 @@
 
       <paper-material elevation="2" id="preview">
         <h3>Request Preview</h3>
-        <request-previewer http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}"></request-previewer>
+        <request-previewer id="requestPreviewer" http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}"></request-previewer>
+
+        <!-- Send the message -->
+        <iron-ajax id="sendMessage"
+                   url="[[settings.main.sendMessageEndpoint]]"
+                   body="{{messageBody}}"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="messageSentHandler"
+                   method="POST"
+                   verbose>
+        </iron-ajax>
 
         <paper-button raised class="primary" id="sendBtn" on-click="send_">
           <iron-icon icon="check"></iron-icon>
@@ -246,6 +258,12 @@
             value: function() {
               return [];
             }
+          },
+
+          // The type of message user has decided to send
+          selectedType: {
+            type: String,
+            value: ''
           },
 
           toast: {
@@ -316,9 +334,9 @@
 
           this.log_("Selected " + selectedType);
 
-          this.$$('protocol-chooser').reset();
-          this.$$('recipients-chooser').deselectAllRegIds_();
-          this.$$('recipients-chooser').emptyCustomList_();
+          this.$.protocolChooser.reset();
+          this.$.recipientsChooser.deselectAllRegIds_();
+          this.$.recipientsChooser.emptyCustomList_();
 
           this.setState_(selectedType);
         },
@@ -329,7 +347,7 @@
         protocolChangeHandler: function(e) {
           this.selectedProtocol = e.detail.choice;
           this.log_("Selected " + this.selectedProtocol);
-          this.$$('request-previewer').update();
+          this.$.requestPreviewer.update();
         },
 
 
@@ -356,6 +374,22 @@
         customListHandler: function(e) {
           this.customIds = e.detail.ids;
           this.log_(this.customIds);
+        },
+
+
+        /**
+         * Handls the response from message sending call.
+         */
+        messageSentHandler: function(e) {
+          var status = e.detail.status;
+          if (status === 200) {
+            this.showToast_('Message sent!');
+          } else if (status === 404) {
+            this.showToast_('Message sending failed. Is your server running?');
+          } else {
+            this.showToast_('Message sending failed.');
+          }
+          this.$.sendBtn.disabled = false;
         },
 
 
@@ -387,30 +421,31 @@
          */
         setState_: function(selectedType) {
           this.registrationIds = [];
+          this.selectedType = selectedType;
 
           switch (selectedType) {
             case 'unicast':
               this.disableXmpp = false;
               this.regIdLimit_ = 1;
-              this.$$('recipients-chooser').enableAllRegIds_();
+              this.$.recipientsChooser.enableAllRegIds_();
               this.setCustomListLabel_('Or, paste one registration ID');
               break;
             case 'multicast':
               this.disableXmpp = true;
               this.regIdLimit_ = -1;
-              this.$$('recipients-chooser').enableAllRegIds_();
+              this.$.recipientsChooser.enableAllRegIds_();
               this.setCustomListLabel_('Paste more registration IDs');
               break;
             case 'pubsub':
               this.disableXmpp = false;
               this.regIdLimit_ = 0;
-              this.$$('recipients-chooser').disableAllRegIds_();
+              this.$.recipientsChooser.disableAllRegIds_();
               this.setCustomListLabel_('Paste a topic. eg. /topic/myTopic');
               break;
             case 'notification_group':
               this.disableXmpp = false;
               this.regIdLimit_ = 0;
-              this.$$('recipients-chooser').disableAllRegIds_();
+              this.$.recipientsChooser.disableAllRegIds_();
               this.setCustomListLabel_('Paste a notification group key');
               break;
           }
@@ -421,7 +456,7 @@
          * Sets the label of the textarea in recipients card.
          */
         setCustomListLabel_: function(text) {
-          this.$$('recipients-chooser').setCustomListLabel_(text);
+          this.$.recipientsChooser.setCustomListLabel_(text);
         },
 
 
@@ -438,17 +473,183 @@
 
 
         /**
+         * Builds, validates and returns the notification payload.
+         * Returns `null` if validation failed.
+         */
+        getAndValidateNotification_: function() {
+          var notification = {
+            title: this.$$('#notif_title').value,
+            body: this.$$('#notif_body').value,
+            icon: this.$$('#notif_icon').value,
+            sound: this.$$('#notif_sound').value,
+            badge: this.$$('#notif_badge').value,
+            tag: this.$$('#notif_tag').value,
+            color: this.$$('#notif_color').value,
+            click_action: this.$$('#notif_click_action').value,
+            body_loc_key: this.$$('#notif_body_loc_key').value,
+            title_loc_key: this.$$('#notif_title_loc_key').value,
+            title_loc_args: this.$$('#notif_title_loc_args').value,
+            body_loc_args: this.$$('#notif_body_loc_args').value
+          };
+
+          // Validate the syntax of JSON
+          try {
+            if (notification.body_loc_args) { JSON.parse(notification.body_loc_args); }
+          } catch (err) {
+            this.showToast_('Make sure Notification Body Loc Args is valid JSON');
+            return null;
+          }
+          try {
+            if (notification.title_loc_args) { JSON.parse(notification.title_loc_args); }
+          } catch (err) {
+            this.showToast_('Make sure Notification Title Loc Args is valid JSON');
+            return null;
+          }
+
+          return notification;
+        },
+
+
+        /**
+         * Builds, validates and returns the options.
+         * Returns `null` if validation failed.
+         */
+        getAndValidateOptions_: function() {
+          var options = {
+            deliveryReceiptRequested: this.$.deliveryReceiptRequested.checked,
+            dry_run: this.$$('#dry_run').checked,
+            priority: this.$.priority.value,
+            delay_while_idle: this.$$('#delay_while_idle').checked,
+            content_available: this.$$('#content_available').checked,
+            time_to_live: +this.$$('#time_to_live').value,
+            collapse_key: this.$$('#collapse_key').value,
+            restrictedPackageName: this.$.restrictedPackageName.value,
+            messageId: this.$.messageId.value
+          };
+
+          // Clean up the fields according to the selected protocol
+          if (this.selectedProtocol === 'http') {
+            options.deliveryReceiptRequested = false;
+            options.messageId = '';
+          }
+          if (this.selectedProtocol === 'xmpp') {
+            options.restrictedPackageName = '';
+          }
+
+          // Make sure all required fields are present
+          if (this.selectedProtocol === 'xmpp' && options.messageId === '') {
+            this.showToast_('XMPP messages must have a message ID.');
+            return null;
+          }
+
+          // Validate the range of time to live
+          if (isNaN(options.time_to_live) || options.time_to_live > 2419200 || options.time_to_live < 0) {
+            this.showToast_('Time to live should be smaller than 2,419,200 (4 weeks)');
+            return null;
+          }
+
+          return options;
+        },
+
+
+        /**
+         * Validates the selections and recipients by message type.
+         * Returns `false` if validation failed, `true` otherwise.
+         */
+        validateByMessageType: function(customIds, selectedIds) {
+          // Validate unicast message
+          if (this.selectedType === 'unicast') {
+            if (customIds.length + selectedIds.length !== 1) {
+              this.showToast_('You can only send message to one recipient at a time.');
+              return false;
+            }
+          }
+          // Validate topic for pubsub messages
+          if (this.selectedType === 'pubsub') {
+            if (customIds.length !== 1) {
+              this.showToast_('You can only send message to one topic at a time.');
+              return false;
+            }
+            if (!customIds[0].startsWith('/topic/')) {
+              this.showToast_('Your topic is not correct. Make sure it\'s of the format "/topic/<mytopic>"');
+              return false;
+            }
+          }
+          // Validate notification group
+          if (this.selectedType === 'notification_group') {
+            if (customIds.length !== 1) {
+              this.showToast_('You can only send message to one notification group at a time.');
+              return false;
+            }
+          }
+
+          return true;
+        },
+
+
+        /**
          * Send a message
          */
         send_: function() {
-          // TODO(karangoel): Implement this
-          // Serialize the form
-          // Validate all the fields
-          // If validation failed, show errors
-          // Else make a POST request to the server, disable the button
-          // Wait for response, and show it, enable the button
-          this.showToast_('Sending message ID: ' + this.$.message_id.value);
-          // this.$.sendBtn.disabled = true;
+          var notification = this.getAndValidateNotification_();
+          if (!notification) return;
+
+          var options = this.getAndValidateOptions_();
+          if (!options) return;
+
+          var dataPayload = this.$.data.value;
+          var selectedIds = this.$.recipientsChooser.getSelectedIds();
+          var customIds = this.customIds;
+
+          // Make sure all required fields are present
+          if (selectedIds.length === 0 && customIds.length === 0) {
+            this.showToast_('Select at least one recipient.');
+            return;
+          }
+          if (!this.validateByMessageType(this.customIds, selectedIds)) return;
+
+          // Validate JSON
+          try {
+            if (dataPayload) { JSON.parse(dataPayload); }
+          } catch (err) {
+            this.showToast_('Make sure the data payload is valid JSON');
+            return;
+          }
+
+          this.messageBody = {
+            message: {
+              notification: notification
+            },
+            protocol: this.selectedProtocol
+          };
+          // Merge options in top level of message JSON body
+          for (var attrname in options) {
+            this.messageBody[attrname] = options[attrname];
+          }
+
+          if (dataPayload && Object.keys(dataPayload) > 0) {
+            this.messageBody.message.data = dataPayload;
+          }
+
+          console.log(this.messageBody.message);
+          if (this.selectedType === 'unicast') {
+            var allTargets = selectedIds.concat(customIds);
+            this.messageBody.message.to = allTargets[0];
+          } else if (this.selectedType === 'pubsub' || this.selectedType === 'notification_group') {
+            this.messageBody.message.to = customIds[0];
+          } else {
+            var registrationIds = selectedIds;
+            registrationIds.push.apply(registrationIds, customIds);
+            this.messageBody.message.registration_ids = registrationIds
+          }
+          console.log(this.messageBody.message);
+
+          this.$.sendBtn.disabled = true;
+
+          this.messageBody = JSON.stringify(this.messageBody);
+          this.$.sendMessage.generateRequest();
+
+          this.showToast_('Sending message ID: ' + options.messageId);
         },
 
 

@@ -85,11 +85,6 @@
         update: function() {
           this.log_("Updating");
 
-          console.log(this.$.httpPreview);
-          console.log(this.$.httpPreview.attributes);
-          console.log(this.$.xmppPreview);
-          console.log(this.$.xmppPreview.attributes);
-
           if (this.httpSelected) {
             this.requestOutput_ = JSON.stringify({ "collapse_key": "score_update",
                 "time_to_live": 108,

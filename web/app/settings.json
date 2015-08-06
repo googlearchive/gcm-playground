@@ -1,4 +1,7 @@
 {
+  "main": {
+    "sendMessageEndpoint": "http://localhost:4260/message"
+  },
   "notificationFields_": [
     {
       "label": "Title",

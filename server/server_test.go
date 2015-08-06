@@ -27,6 +27,7 @@ var (
 	clientUrl     string
 	registerUrl   string
 	unregisterUrl string
+	sendMessageUrl string
 )
 
 func init() {
@@ -37,6 +38,7 @@ func init() {
 	clientUrl = fmt.Sprintf("%s/clients", server.URL)
 	registerUrl = fmt.Sprintf("%s/clients", server.URL)
 	unregisterUrl = fmt.Sprintf("%s/clients", server.URL)
+	sendMessageUrl = fmt.Sprintf("%s/message", server.URL)
 }
 
 func teardownTest() {
@@ -187,3 +189,45 @@ func TestUnregisterMultipleClients(t *testing.T) {
 		assertEqual(t, res.StatusCode, http.StatusNoContent)
 	}
 }
+
+
+// Test sending a unicast message
+// HTTP with notification only
+// func TestSendUnicastMessageWithNotificationOnly(t *testing.T) {
+// 	defer teardownTest()
+
+// 	json := `{
+// 	  "message": {
+// 	    "notification": {
+// 	      "title": "Sup",
+// 	      "body": "",
+// 	      "icon": "",
+// 	      "sound": "",
+// 	      "badge": "",
+// 	      "tag": "",
+// 	      "color": "",
+// 	      "click_action": "",
+// 	      "body_loc_key": "",
+// 	      "title_loc_key": ""
+// 	    },
+// 		  "to": "Lorem ipsum Labore elit officia irure in."
+// 	  },
+// 	  "protocol": "http",
+// 	  "delivery_receipt_requested": false,
+// 	  "dry_run": false,
+// 	  "priority": 1,
+// 	  "delay_while_idle": false,
+// 	  "content_available": false,
+// 	  "time_to_live": 0,
+// 	  "collapse_key": "",
+// 	  "restricted_package_name": "",
+// 	  "message_id": ""
+// 	}`
+
+// 	res, err := MakeRequest("POST", sendMessageUrl, json)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+
+// 	assertEqual(t, res.StatusCode, http.StatusOK)
+// }

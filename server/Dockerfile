@@ -29,6 +29,8 @@ RUN apt-get update && apt-get install -y build-essential
 RUN go get -u github.com/gorilla/mux
 RUN go get -u github.com/jinzhu/gorm
 RUN go get -u github.com/mattn/go-sqlite3
+RUN go get -u github.com/google/go-gcm
+RUN go get -u github.com/rs/cors
 
 
 # -----------------
