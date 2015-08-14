@@ -194,6 +194,7 @@ window.onload = function() {
 
   chrome.gcm.onMessage.addListener(function(message) {
     console.log('chrome.gcm.onMessage', message);
+    document.getElementById('message').value = message;
   });
 
   isRegistered(function(registered) {

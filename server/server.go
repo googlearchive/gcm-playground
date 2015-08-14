@@ -37,6 +37,9 @@ var (
 	// API key from Cloud console
 	apiKey = ""
 
+	// GCM sender ID
+	senderId = ""
+
 	// The name of the database to connect to
 	databaseName = "data.db"
 

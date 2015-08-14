@@ -1,0 +1,4 @@
+# GCM Playground
+platform :ios, '7.0'
+link_with 'GCM Playground'
+pod 'Google/CloudMessaging'

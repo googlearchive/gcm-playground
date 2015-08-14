@@ -168,7 +168,7 @@
           <h4>Other Options</h4>
 
           <div class="line">
-            <paper-toggle-button id="deliveryReceiptRequested" disabled="{{httpSelected}}"></paper-toggle-button>
+            <paper-toggle-button id="delivery_receipt_requested" disabled="{{httpSelected}}"></paper-toggle-button>
             <span>Delivery Receipt Requested</span>
             <paper-tooltip margin-top="0">This parameter lets the app server request confirmation of message delivery.</paper-tooltip>
           </div>
@@ -186,14 +186,14 @@
           </template>
 
           <div class="line">
-            <paper-input id="restrictedPackageName" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
-            <paper-tooltip for="restrictedPackageName" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
+            <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
+            <paper-tooltip for="restricted_package_name" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
           </div>
 
           <div class="line">
-            <paper-input id="messageId" label="Message ID" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
+            <paper-input id="message_id" label="Message ID" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
             <paper-icon-button icon="icons:autorenew" style="width: 10%;" on-click="newMessageId_" disabled="{{httpSelected}}"></paper-icon-button>
-            <paper-tooltip for="messageId" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
+            <paper-tooltip for="message_id" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
           </div>
 
           <div class="priority">
@@ -516,28 +516,28 @@
          */
         getAndValidateOptions_: function() {
           var options = {
-            deliveryReceiptRequested: this.$.deliveryReceiptRequested.checked,
+            delivery_receipt_requested: this.$.delivery_receipt_requested.checked,
             dry_run: this.$$('#dry_run').checked,
             priority: this.$.priority.value,
             delay_while_idle: this.$$('#delay_while_idle').checked,
             content_available: this.$$('#content_available').checked,
             time_to_live: +this.$$('#time_to_live').value,
             collapse_key: this.$$('#collapse_key').value,
-            restrictedPackageName: this.$.restrictedPackageName.value,
-            messageId: this.$.messageId.value
+            restricted_package_name: this.$.restricted_package_name.value,
+            message_id: this.$.message_id.value
           };
 
           // Clean up the fields according to the selected protocol
           if (this.selectedProtocol === 'http') {
-            options.deliveryReceiptRequested = false;
-            options.messageId = '';
+            options.delivery_receipt_requested = false;
+            options.message_id = '';
           }
           if (this.selectedProtocol === 'xmpp') {
-            options.restrictedPackageName = '';
+            options.restricted_package_name = '';
           }
 
           // Make sure all required fields are present
-          if (this.selectedProtocol === 'xmpp' && options.messageId === '') {
+          if (this.selectedProtocol === 'xmpp' && options.message_id === '') {
             this.showToast_('XMPP messages must have a message ID.');
             return null;
           }
@@ -649,7 +649,7 @@
           this.messageBody = JSON.stringify(this.messageBody);
           this.$.sendMessage.generateRequest();
 
-          this.showToast_('Sending message ID: ' + options.messageId);
+          this.showToast_('Sending message ID: ' + options.message_id);
         },
 
 
