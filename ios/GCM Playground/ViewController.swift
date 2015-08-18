@@ -16,12 +16,17 @@ import UIKit
 
 class ViewController: UIViewController {
 
+  let registerNewClient: String = "register_new_client"
+  let unregisterClient: String = "unregister_client"
+
+  let gcmAddress: String = "@gcm.googleapis.com"
+
   @IBOutlet weak var registrationStatus: UITextView!
   @IBOutlet weak var registrationToken: UITextView!
 
   @IBOutlet weak var senderIdField: UITextField!
-  @IBOutlet weak var appServerHostField: UITextField!
   @IBOutlet weak var stringIdentifierField: UITextField!
+  @IBOutlet weak var downstreamPayloadField: UITextView!
 
   @IBOutlet weak var registerButton: UIButton!
   @IBOutlet weak var unregisterButton: UIButton!
@@ -31,7 +36,6 @@ class ViewController: UIViewController {
   var appDelegate: AppDelegate!
 
   var gcmSenderID: String?
-  var appServerHost: String?
   var stringIdentifier: String?
 
   var registrationOptions = [String: AnyObject]()
@@ -60,7 +64,6 @@ class ViewController: UIViewController {
 
     // TODO(karangoel): Remove this, only for development
     senderIdField.text = "1015367374593"
-    appServerHostField.text = "751cebd0.ngrok.io"
   }
 
   override func didReceiveMemoryWarning() {
@@ -72,11 +75,10 @@ class ViewController: UIViewController {
   @IBAction func registerClient(sender: UIButton) {
     // Get the fields values
     gcmSenderID = senderIdField.text
-    appServerHost = appServerHostField.text
     stringIdentifier = stringIdentifierField.text
 
     // Validate field values
-    if (gcmSenderID == "" || appServerHost == "") {
+    if (gcmSenderID == "") {
       showAlert("Invalid input", message: "Sender ID and host cannot be empty.")
       return
     }
@@ -93,34 +95,10 @@ class ViewController: UIViewController {
 
   // Click handler for unregister button
   @IBAction func unregisterFromAppServer(sender: UIButton) {
-    // TODO(karangoel): This will actually be sent over GCM instead of HTTP
-    let url = NSURL(string: "http://" + appServerHostField.text + "/clients/" + token)
-    var request = NSMutableURLRequest(URL: url!)
-    var session = NSURLSession.sharedSession()
-    request.HTTPMethod = "DELETE"
-
-    var err: NSError?
-    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.addValue("application/json", forHTTPHeaderField: "Accept")
-
-    var task = session.dataTaskWithRequest(request, completionHandler: {data, response, error -> Void in
-      println("Response: \(response)")
-      var httpResponse = response as! NSHTTPURLResponse
-      if httpResponse.statusCode != 204 {
-        // Move to the UI thread
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-          self.updateUI("Unregistration with app server FAILED", registered: true)
-        })
-      } else {
-        // Move to the UI thread
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-          self.token = ""
-          self.updateUI("Unregistration COMPLETE!", registered: false)
-        })
-      }
-    })
-
-    task.resume()
+    let message = ["action": unregisterClient, "token": token]
+    sendMessage(message)
+    token = ""
+    updateUI("Unregistration COMPLETE!", registered: false)
   }
 
   // Got a new GCM registration token
@@ -178,9 +156,7 @@ class ViewController: UIViewController {
   // TODO(karangoel): Test this. Show notification content in the UI.
   func showReceivedMessage(notification: NSNotification) {
     if let info = notification.userInfo as? Dictionary<String,AnyObject> {
-      if let aps = info["aps"] as? Dictionary<String, String> {
-        showAlert("Message received", message: aps["alert"]!)
-      }
+      downstreamPayloadField.text = info.description
     } else {
       println("Software failure. Guru meditation.")
     }
@@ -188,36 +164,20 @@ class ViewController: UIViewController {
 
   // Call the app server and register the current reg token
   func registerWithAppServer() {
-    // TODO(karangoel): This will move to GCM instead of HTTP
-    let url = NSURL(string: "http://" + appServerHostField.text + "/clients")
-    var request = NSMutableURLRequest(URL: url!)
-    var session = NSURLSession.sharedSession()
-    request.HTTPMethod = "POST"
+    let message = ["action": registerNewClient, "token": token, "stringIdentifier": stringIdentifierField.text]
+    sendMessage(message)
+    self.updateUI("Registration COMPLETE!", registered: true)
+  }
 
-    var params = ["registration_token": token, "string_identifier": stringIdentifierField.text] as Dictionary<String, String>
+  func sendMessage(message: NSDictionary) {
+    // The resolution for timeIntervalSince1970 is in millisecond. So this will work
+    // when you are sending no more than 1 message per millisecond.
+    // To use in production, there should be a database of all used IDs to make sure
+    // we don't use an already-used ID.
+    let nextMessageID: String = NSDate().timeIntervalSince1970.description
 
-    var err: NSError?
-    request.HTTPBody = NSJSONSerialization.dataWithJSONObject(params, options: nil, error: &err)
-    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.addValue("application/json", forHTTPHeaderField: "Accept")
-
-    var task = session.dataTaskWithRequest(request, completionHandler: {data, response, error -> Void in
-      println("Response: \(response)")
-      var httpResponse = response as! NSHTTPURLResponse
-      if httpResponse.statusCode != 201 {
-        // Move to the UI thread
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-          self.updateUI("Registration with app server FAILED", registered: false)
-        })
-      } else {
-        // Move to the UI thread
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-          self.updateUI("Registration COMPLETE!", registered: true)
-        })
-      }
-    })
-
-    task.resume()
+    let to: String = senderIdField.text + gcmAddress
+    GCMService.sharedInstance().sendMessage(message as [NSObject : AnyObject], to: to, withId: nextMessageID)
   }
 
   func updateUI(status: String, registered: Bool) {
