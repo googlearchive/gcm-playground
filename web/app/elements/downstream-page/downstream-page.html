@@ -610,7 +610,7 @@
 
           // Validate JSON
           try {
-            if (dataPayload) { JSON.parse(dataPayload); }
+            if (dataPayload) { dataPayload = JSON.parse(dataPayload); }
           } catch (err) {
             this.showToast_('Make sure the data payload is valid JSON');
             return;
@@ -627,11 +627,10 @@
             this.messageBody[attrname] = options[attrname];
           }
 
-          if (dataPayload && Object.keys(dataPayload) > 0) {
+          if (dataPayload && Object.keys(dataPayload).length > 0) {
             this.messageBody.message.data = dataPayload;
           }
 
-          console.log(this.messageBody.message);
           if (this.selectedType === 'unicast') {
             var allTargets = selectedIds.concat(customIds);
             this.messageBody.message.to = allTargets[0];
@@ -642,7 +641,6 @@
             registrationIds.push.apply(registrationIds, customIds);
             this.messageBody.message.registration_ids = registrationIds
           }
-          console.log(this.messageBody.message);
 
           this.$.sendBtn.disabled = true;
 

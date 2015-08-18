@@ -199,7 +199,7 @@ func TestUnregisterMultipleClients(t *testing.T) {
 // 	json := `{
 // 	  "message": {
 // 	    "notification": {
-// 	      "title": "Sup",
+// 	      "title": "",
 // 	      "body": "",
 // 	      "icon": "",
 // 	      "sound": "",
@@ -210,7 +210,7 @@ func TestUnregisterMultipleClients(t *testing.T) {
 // 	      "body_loc_key": "",
 // 	      "title_loc_key": ""
 // 	    },
-// 		  "to": "Lorem ipsum Labore elit officia irure in."
+// 	    "to": "Lorem ipsum Labore elit officia irure in."
 // 	  },
 // 	  "protocol": "http",
 // 	  "delivery_receipt_requested": false,

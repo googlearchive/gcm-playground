@@ -35,10 +35,12 @@ const port string = "4260"
 
 var (
 	// API key from Cloud console
-	apiKey = ""
+	// TODO(karangoel): Remove this
+	apiKey = "AIzaSyCN0IeWaLgDgU7MVMNiUV0eAvoKo26rzg8"
 
 	// GCM sender ID
-	senderId = ""
+	// TODO(karangoel): Remove this
+	senderId = "436520785863"
 
 	// The name of the database to connect to
 	databaseName = "data.db"
