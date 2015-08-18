@@ -2,12 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.samples.apps.gcmplayground" >
 
-    <!-- [START gcm_permission] -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- [END gcm_permission] -->
 
     <application
         android:allowBackup="true"
@@ -24,8 +22,7 @@
             </intent-filter>
         </activity>
 
-        <!-- [START gcm_receiver] -->
-        <!-- handles messages sent from GCM to your application -->
+        <!-- Handles messages sent from GCM to your application -->
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
@@ -35,21 +32,17 @@
                 <category android:name="com.google.samples.apps.gcmplayground" />
             </intent-filter>
         </receiver>
-        <!-- [END gcm_receiver] -->
 
-        <!-- [START gcm_listener] -->
-        <!-- which enables various aspects of handling messages -->
-        <!--<service-->
-            <!--android:name="com.google.samples.apps.gcmplayground.MyGcmListenerService"-->
-            <!--android:exported="false" >-->
-            <!--<intent-filter>-->
-                <!--<action android:name="com.google.android.c2dm.intent.RECEIVE" />-->
-            <!--</intent-filter>-->
-        <!--</service>-->
-        <!-- [END gcm_listener] -->
+        <!-- Enables various aspects of handling messages -->
+        <service
+            android:name="com.google.samples.apps.gcmplayground.MyGcmListenerService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
 
-        <!-- [START instanceId_listener] -->
-        <!-- handle the creation, rotation, and updating of registration tokens -->
+        <!-- Handle the creation, rotation, and updating of registration tokens -->
         <service
             android:name="com.google.samples.apps.gcmplayground.MyInstanceIDListenerService"
             android:exported="false">
@@ -57,7 +50,6 @@
                 <action android:name="com.google.android.gms.iid.InstanceID"/>
             </intent-filter>
         </service>
-        <!-- [END instanceId_listener] -->
 
         <service
             android:name="com.google.samples.apps.gcmplayground.RegistrationIntentService"

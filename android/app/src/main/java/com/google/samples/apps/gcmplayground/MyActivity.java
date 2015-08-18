@@ -15,7 +15,6 @@
 package com.google.samples.apps.gcmplayground;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,7 +23,6 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -46,13 +44,15 @@ public class MyActivity extends Activity  {
     private static final String TAG = "MyActivity";
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private BroadcastReceiver mDownstreamBroadcastReceiver;
     private Button registerButton;
     private Button unregisterButton;
     private EditText senderIdField;
-    private EditText appServerHost;
-    private EditText stringIdentifier;
-    private TextView registrationTokenField;
-    private TextView statusField;
+    private EditText appServerHostField;
+    private EditText stringIdentifierField;
+    private TextView registrationTokenFieldView;
+    private TextView statusView;
+    private TextView downstreamBundleView;
     private String token;
 
     @Override
@@ -63,23 +63,22 @@ public class MyActivity extends Activity  {
         registerButton = (Button) findViewById(R.id.register_button);
         unregisterButton = (Button) findViewById(R.id.unregister_button);
         senderIdField = (EditText) findViewById(R.id.sender_id);
-        appServerHost = (EditText) findViewById(R.id.app_server_host);
-        stringIdentifier = (EditText) findViewById(R.id.string_identifier);
-        registrationTokenField = (TextView) findViewById(R.id.registeration_token);
-        statusField = (TextView) findViewById(R.id.status);
+        appServerHostField = (EditText) findViewById(R.id.app_server_host);
+        stringIdentifierField = (EditText) findViewById(R.id.string_identifier);
+        registrationTokenFieldView = (TextView) findViewById(R.id.registeration_token);
+        statusView = (TextView) findViewById(R.id.status);
+        downstreamBundleView = (TextView) findViewById(R.id.downstream_bundle);
 
         // If Play Services is not up to date, quit the app.
         checkPlayServices();
 
         // Restore from saved instance state
-        // [START restore_saved_instance_state]
         if (savedInstanceState != null) {
             token = savedInstanceState.getString(RegistrationConstants.EXTRA_KEY_TOKEN, "");
             if (token != "") {
                 updateUI("Registration SUCCEEDED", true);
             }
         }
-        // [END restore_saved_instance_state]
 
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -96,27 +95,41 @@ public class MyActivity extends Activity  {
             }
         };
 
+        mDownstreamBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String from = intent.getStringExtra(RegistrationConstants.SENDER_ID);
+                Bundle data = intent.getBundleExtra(RegistrationConstants.EXTRA_KEY_BUNDLE);
+                String message = data.getString("message");
+
+                downstreamBundleView.setText(data.toString());
+
+                Log.d(TAG, "Received from >" + from + "< with >" + data.toString() + "<");
+                Log.d(TAG, "Message: " + message);
+            }
+        };
+
         LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
                 new IntentFilter(RegistrationConstants.REGISTRATION_COMPLETE));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mDownstreamBroadcastReceiver,
+                new IntentFilter(RegistrationConstants.NEW_DOWNSTREAM_MESSAGE));
 
         // TODO(karangoel): Remove these. Only for development purposes
         senderIdField.setText("436520785863");
-        appServerHost.setText("b5600183.ngrok.io");
-        stringIdentifier.setText("Nexus 5");
+        appServerHostField.setText("751cebd0.ngrok.io");
+        stringIdentifierField.setText("Nexus 5");
     }
 
-    // [START on_save_instance_state]
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(RegistrationConstants.EXTRA_KEY_TOKEN, token);
     }
-    // [END on_save_instance_state]
 
     private void updateUI(String status, boolean registered) {
         // Set status and token text
-        statusField.setText(status);
-        registrationTokenField.setText(token);
+        statusView.setText(status);
+        registrationTokenFieldView.setText(token);
 
         // Button enabling
         registerButton.setEnabled(!registered);
@@ -150,8 +163,8 @@ public class MyActivity extends Activity  {
     public void registerClient(View view) throws IOException {
         // Get the sender ID
         String senderId = senderIdField.getText().toString();
-        String stringId = stringIdentifier.getText().toString();
-        String host = appServerHost.getText().toString();
+        String stringId = stringIdentifierField.getText().toString();
+        String host = appServerHostField.getText().toString();
 
         if (senderId == "" || host == "") {
             showToast("Sender ID and host cannot be empty.");
@@ -171,7 +184,7 @@ public class MyActivity extends Activity  {
      * @param view
      */
     public void unregisterClient(View view) {
-        String host = appServerHost.getText().toString();
+        String host = appServerHostField.getText().toString();
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("http")
                 .authority(host)
@@ -191,7 +204,7 @@ public class MyActivity extends Activity  {
         protected void onPostExecute(Integer code) {
             Log.d(TAG, Integer.toString(code));
             if (code != RegistrationConstants.VALID_DELETE_RESPONSE) {
-                statusField.setText("Unregistration failed: " + code);
+                statusView.setText("Unregistration failed: " + code);
             } else {
                 token = "";
                 updateUI("Unregistration SUCCEEDED", false);

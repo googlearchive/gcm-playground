@@ -21,8 +21,10 @@ public class RegistrationConstants {
     public static final String SENDER_ID = "senderId";
     public static final String STRING_IDENTIFIER = "stringIdentifier";
     public static final String HOST = "host";
+    public static final String NEW_DOWNSTREAM_MESSAGE = "newDownstreamMessage";
 
     public static final String EXTRA_KEY_TOKEN = "TOKEN";
+    public static final String EXTRA_KEY_BUNDLE = "BUNDLE";
 
     public static final int VALID_POST_RESPONSE = 201;
     public static final int VALID_DELETE_RESPONSE = 204;

@@ -16,10 +16,8 @@ package com.google.samples.apps.gcmplayground;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -46,17 +44,14 @@ public class RegistrationIntentService extends IntentService {
         Intent regCompleteIntent = new Intent(RegistrationConstants.REGISTRATION_COMPLETE);
 
         try {
-            // [START register_for_gcm]
             // Initially this call goes out to the network to retrieve the token, subsequent
             // calls are local.
-            // [START get_token]
             String sender_id = extras.getString(RegistrationConstants.SENDER_ID);
             String string_identifier = extras.getString(RegistrationConstants.STRING_IDENTIFIER);
             String host = extras.getString(RegistrationConstants.HOST);
 
             token = InstanceID.getInstance(this)
                     .getToken(sender_id, GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-            // [END get_token]
             Log.d(TAG, "GCM Registration Token: " + token);
 
             // Register token with app server.
@@ -66,7 +61,6 @@ public class RegistrationIntentService extends IntentService {
             // sent to your server. If the boolean is false, send the token to your server,
             // otherwise your server should have already received the token.
             regCompleteIntent.putExtra(RegistrationConstants.SENT_TOKEN_TO_SERVER, sent_token);
-            // [END register_for_gcm]
         } catch (Exception e) {
             Log.e(TAG, "Failed to complete token refresh", e);
             // If an exception happens while fetching the new token or updating our registration
