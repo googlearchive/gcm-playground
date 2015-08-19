@@ -16,6 +16,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,24 +24,32 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/go-gcm"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/cors"
-	"github.com/google/go-gcm"
 )
 
-// What port should the server run on
-const port string = "4260"
+const (
+	// What port should the server run on
+	port = "4260"
+
+	actionKey         = "action"
+	registerNewClient = "register_new_client"
+	unregisterClient  = "unregister_client"
+	token             = "registration_token"
+	stringIdentifier  = "stringIdentifier"
+)
 
 var (
 	// API key from Cloud console
 	// TODO(karangoel): Remove this
-	apiKey = "AIzaSyCN0IeWaLgDgU7MVMNiUV0eAvoKo26rzg8"
+	apiKey = "AIzaSyCFVrvWMv0ueY0-wN_RWK_OJ_FmcgkoF_I"
 
 	// GCM sender ID
 	// TODO(karangoel): Remove this
-	senderId = "436520785863"
+	senderId = "1015367374593"
 
 	// The name of the database to connect to
 	databaseName = "data.db"
@@ -62,7 +71,7 @@ type ClientCollection struct {
 }
 
 type DownstreamMessage struct {
-	Protocol string `json:"protocol"`
+	Protocol string          `json:"protocol"`
 	Message  json.RawMessage `json:"message"`
 }
 
@@ -110,6 +119,7 @@ func ListClients(w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, clientArray)
 }
 
+// TODO(karangoel): Remove after moving all clients to using GCM
 // Handle request to save a new client.
 // The body of this request must contain a `registration_token`.
 // Optionally, the body can contain a `string_identifier` string.
@@ -136,6 +146,7 @@ func CreateClient(w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, client)
 }
 
+// TODO(karangoel): Remove after moving all clients to using GCM
 // Handle request to delete a client.
 // The URL of this request must contain a `registration_token`.
 func DeleteClient(w http.ResponseWriter, r *http.Request) {
@@ -206,6 +217,44 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Callback for gcmd listen: check action and dispatch server method
+func onMessageReceived(cm gcm.CcsMessage) error {
+	log.Printf("Received Message: %+v", cm)
+
+	d := cm.Data
+
+	switch d[actionKey] {
+	case registerNewClient:
+		token, ok := d[token].(string)
+		if !ok {
+			return errors.New("Error decoding registration token for new client.")
+		}
+		string_identifier, ok := d[stringIdentifier].(string)
+		if !ok {
+			return errors.New("Error decoding string identifier for new client.")
+		}
+
+		client := Client{token, string_identifier}
+		if !ClientExistsInDb(client.RegistrationToken) {
+			db.Create(&client)
+		}
+	case unregisterClient:
+		token, ok := d[token].(string)
+		if !ok {
+			return errors.New("Error decoding registration token for client.")
+		}
+
+		client := Client{token, ""}
+
+		if !ClientExistsInDb(token) {
+			return errors.New("Client does not exist in database.")
+		} else {
+			db.Delete(&Client{}, "registration_token = ?", client.RegistrationToken)
+		}
+	}
+	return nil
+}
+
 // Route handler for the server
 func Handler() http.Handler {
 	router := mux.NewRouter()
@@ -214,10 +263,12 @@ func Handler() http.Handler {
 	// List all registered registration IDs
 	router.HandleFunc("/clients", ListClients).Methods("GET")
 
+	// TODO(karangoel): Remove after moving all clients to using GCM
 	// POST /clients
 	// Add a new client
 	router.HandleFunc("/clients", CreateClient).Methods("POST")
 
+	// TODO(karangoel): Remove after moving all clients to using GCM
 	// DELETE /clients
 	// Remove an existing client
 	router.HandleFunc("/clients/{registration_token}", DeleteClient).Methods("DELETE")
@@ -231,6 +282,14 @@ func Handler() http.Handler {
 
 func main() {
 	InitDb()
+
+	gcm.DebugMode = true
+	go func() {
+		err := gcm.Listen(senderId, apiKey, onMessageReceived, nil)
+		if err != nil {
+			fmt.Printf("Listen error: %v", err)
+		}
+	}()
 
 	// Start the server
 	log.Println(fmt.Sprintf("Started, serving at port %v", port))
