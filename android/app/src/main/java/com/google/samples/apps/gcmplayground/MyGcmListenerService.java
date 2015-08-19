@@ -19,6 +19,7 @@ package com.google.samples.apps.gcmplayground;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.google.samples.apps.gcmplayground.constants.RegistrationConstants;
@@ -37,6 +38,8 @@ public class MyGcmListenerService extends GcmListenerService {
     @Override
     public void onMessageReceived(String from, Bundle data) {
         super.onMessageReceived(from, data);
+
+        Log.d(TAG, data.toString());
 
         Intent downstreamMessageIntent = new Intent(RegistrationConstants.NEW_DOWNSTREAM_MESSAGE);
         downstreamMessageIntent.putExtra(RegistrationConstants.SENDER_ID, from);
