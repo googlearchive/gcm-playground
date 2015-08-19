@@ -26,7 +26,9 @@ public class RegistrationConstants {
     public static final String EXTRA_KEY_TOKEN = "TOKEN";
     public static final String EXTRA_KEY_BUNDLE = "BUNDLE";
 
-    public static final int VALID_POST_RESPONSE = 201;
-    public static final int VALID_DELETE_RESPONSE = 204;
+    public static final String REGISTER_NEW_CLIENT = "register_new_client";
+    public static final String UNREGISTER_CLIENT = "unregister_client";
+    public static final String REGISTRATION_TOKEN = "registration_token";
+    public static final String ACTION = "action";
 
 }

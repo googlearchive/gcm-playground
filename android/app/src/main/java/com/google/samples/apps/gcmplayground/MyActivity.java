@@ -20,7 +20,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -33,8 +32,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.samples.apps.gcmplayground.constants.RegistrationConstants;
-import com.google.samples.apps.gcmplayground.util.GCMPlaygroundUtil;
+import com.google.samples.apps.gcmplayground.util.GcmPlaygroundUtil;
 
 import java.io.IOException;
 
@@ -42,13 +42,13 @@ public class MyActivity extends Activity  {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "MyActivity";
+    private GoogleCloudMessaging gcm;
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private BroadcastReceiver mDownstreamBroadcastReceiver;
     private Button registerButton;
     private Button unregisterButton;
     private EditText senderIdField;
-    private EditText appServerHostField;
     private EditText stringIdentifierField;
     private TextView registrationTokenFieldView;
     private TextView statusView;
@@ -63,11 +63,12 @@ public class MyActivity extends Activity  {
         registerButton = (Button) findViewById(R.id.register_button);
         unregisterButton = (Button) findViewById(R.id.unregister_button);
         senderIdField = (EditText) findViewById(R.id.sender_id);
-        appServerHostField = (EditText) findViewById(R.id.app_server_host);
         stringIdentifierField = (EditText) findViewById(R.id.string_identifier);
         registrationTokenFieldView = (TextView) findViewById(R.id.registeration_token);
         statusView = (TextView) findViewById(R.id.status);
         downstreamBundleView = (TextView) findViewById(R.id.downstream_bundle);
+
+        gcm = GoogleCloudMessaging.getInstance(this);
 
         // If Play Services is not up to date, quit the app.
         checkPlayServices();
@@ -115,8 +116,7 @@ public class MyActivity extends Activity  {
                 new IntentFilter(RegistrationConstants.NEW_DOWNSTREAM_MESSAGE));
 
         // TODO(karangoel): Remove these. Only for development purposes
-        senderIdField.setText("436520785863");
-        appServerHostField.setText("751cebd0.ngrok.io");
+        senderIdField.setText("1015367374593");
         stringIdentifierField.setText("Nexus 5");
     }
 
@@ -164,9 +164,8 @@ public class MyActivity extends Activity  {
         // Get the sender ID
         String senderId = senderIdField.getText().toString();
         String stringId = stringIdentifierField.getText().toString();
-        String host = appServerHostField.getText().toString();
 
-        if (senderId == "" || host == "") {
+        if (senderId == "") {
             showToast("Sender ID and host cannot be empty.");
             return;
         }
@@ -175,8 +174,7 @@ public class MyActivity extends Activity  {
         Intent intent = new Intent(this, RegistrationIntentService.class);
         intent.putExtra(RegistrationConstants.SENDER_ID, senderId);
         intent.putExtra(RegistrationConstants.STRING_IDENTIFIER, stringId);
-        intent.putExtra(RegistrationConstants.HOST, host);
-                startService(intent);
+        startService(intent);
     }
 
     /**
@@ -184,33 +182,44 @@ public class MyActivity extends Activity  {
      * @param view
      */
     public void unregisterClient(View view) {
-        String host = appServerHostField.getText().toString();
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http")
-                .authority(host)
-                .appendPath("clients")
-                .appendPath(token);
-        (new UnregisterClientTask()).execute(builder.build().toString());
+        String senderId = senderIdField.getText().toString();
+        if (senderId == "") {
+            showToast("Sender ID and host cannot be empty.");
+            return;
+        }
+        (new UnregisterClientTask()).execute(senderId);
     }
 
-    private class UnregisterClientTask extends AsyncTask<String, Void, Integer> {
+    private class UnregisterClientTask extends AsyncTask<String, Void, Boolean> {
 
         @Override
-        protected Integer doInBackground(String... urls) {
-            return GCMPlaygroundUtil.delete(urls[0]);
+        protected Boolean doInBackground(String... senderId) {
+            Bundle registration = new Bundle();
+
+            // Create the bundle for registration with the server.
+            registration.putString(RegistrationConstants.ACTION, RegistrationConstants.UNREGISTER_CLIENT);
+            registration.putString(RegistrationConstants.REGISTRATION_TOKEN, token);
+            try {
+                gcm.send(GcmPlaygroundUtil.getServerUrl(senderId[0]),
+                        String.valueOf(System.currentTimeMillis()), registration);
+                return true;
+            } catch (IOException e) {
+                Log.e(TAG, "Registration failed", e);
+            }
+            return false;
         }
 
         @Override
-        protected void onPostExecute(Integer code) {
-            Log.d(TAG, Integer.toString(code));
-            if (code != RegistrationConstants.VALID_DELETE_RESPONSE) {
-                statusView.setText("Unregistration failed: " + code);
-            } else {
+        protected void onPostExecute(Boolean suceeded) {
+            if (suceeded) {
                 token = "";
                 updateUI("Unregistration SUCCEEDED", false);
                 showToast("Unregistered!");
+            } else {
+                updateUI("Unregistration FAILED", true);
             }
         }
+
     }
 
     /**
