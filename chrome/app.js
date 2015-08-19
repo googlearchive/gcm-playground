@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+var registerNewClient = "register_new_client";
+var unregisterClient = "unregister_client";
+
 var registrationToken = '';
 
 /**
@@ -63,19 +66,14 @@ function isRegistered(cb) {
 
 
 /**
- * Make an HTTP request.
+ * Returns a message payload sent using GCM.
  */
-function makeRequest(method, url, body, expectedStatus, cb) {
-  var xhr = new XMLHttpRequest();
-  xhr.open(method, url, true);
-  xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-  xhr.send(body);
-
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == 4) {
-      cb(xhr.status === expectedStatus, xhr.responseText);
-    }
-  }
+function buildMessagePayload(data) {
+  return {
+    messageId: new Date().getTime().toString(),
+    destinationId: document.getElementById('senderId').value + '@gcm.googleapis.com',
+    data: data
+  };
 }
 
 
@@ -83,10 +81,22 @@ function makeRequest(method, url, body, expectedStatus, cb) {
  * Register a GCM registration token with the app server.
  */
 function registerWithAppServer(regToken, cb) {
-  var body = JSON.stringify({registration_token: regToken });
-  var url = document.getElementById('appServerHost').value + 'clients';
-  makeRequest('POST', url, body, 201, function(status, err) {
-    cb(status, err);
+  var stringIdentifier = document.getElementById('stringIdentifier').value || "";
+
+  var data = {
+    action: registerNewClient,
+    registration_token: regToken
+  };
+  if (stringIdentifier) data.stringIdentifier = stringIdentifier;
+
+  var message = buildMessagePayload(data);
+
+  chrome.gcm.send(message, function(messageId) {
+    if (chrome.runtime.lastError) {
+      cb(false, chrome.runtime.lastError);
+    } else {
+      cb(true);
+    }
   });
 }
 
@@ -95,10 +105,17 @@ function registerWithAppServer(regToken, cb) {
  * Unregister a registration token from the app server.
  */
 function unregisterFromAppServer(cb) {
-  var url = document.getElementById('appServerHost').value +
-            'clients/' + registrationToken;
-  makeRequest('DELETE', url, '', 204, function(status, err) {
-    cb(status, err);
+  var message = buildMessagePayload({
+      action: unregisterClient,
+      registration_token: registrationToken
+    });
+
+  chrome.gcm.send(message, function(messageId) {
+    if (chrome.runtime.lastError) {
+      cb(false, chrome.runtime.lastError);
+    } else {
+      cb(true);
+    }
   });
 }
 
@@ -194,7 +211,7 @@ window.onload = function() {
 
   chrome.gcm.onMessage.addListener(function(message) {
     console.log('chrome.gcm.onMessage', message);
-    document.getElementById('message').value = message;
+    document.getElementById('message').value = JSON.stringify(message);
   });
 
   isRegistered(function(registered) {
