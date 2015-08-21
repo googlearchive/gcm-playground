@@ -66,7 +66,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_register"
-            android:onClick="registerClient"
             android:elevation="5dp"
             android:layout_marginTop="8dp" />
         <Button android:id="@+id/unregister_button"
@@ -74,12 +73,38 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_unregister"
-            android:onClick="unregisterClient"
             android:layout_marginTop="8dp"
             android:enabled="false" />
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1" >
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.3"
+            android:text="@string/pubsub_prefix_label"
+            android:enabled="false"/>
+        <EditText android:id="@+id/topic_name"
+            android:layout_weight="0.5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/pubsub_topic_label"
+            android:enabled="false"/>
+        <Button android:id="@+id/topic_subscribe"
+            android:layout_weight="0.2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_subscribe"
+            android:elevation="5dp"
+            android:layout_marginTop="8dp"
+            android:enabled="false"/>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -97,7 +122,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_send"
-            android:onClick="sendMessage"
             android:elevation="5dp"
             android:layout_marginTop="8dp"
             android:enabled="false"/>

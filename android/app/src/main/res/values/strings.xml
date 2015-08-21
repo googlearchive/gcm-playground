@@ -12,4 +12,8 @@
     <string name="upstream_message_label">Send message upstream</string>
     <string name="button_send">Send</string>
 
+    <string name="pubsub_prefix_label">/topics/</string>
+    <string name="pubsub_topic_label">myTopic</string>
+    <string name="button_subscribe">Subscribe</string>
+
 </resources>

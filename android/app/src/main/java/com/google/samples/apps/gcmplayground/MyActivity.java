@@ -32,29 +32,32 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.samples.apps.gcmplayground.constants.RegistrationConstants;
 import com.google.samples.apps.gcmplayground.util.GcmPlaygroundUtil;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
-public class MyActivity extends Activity  {
+public class MyActivity extends Activity implements View.OnClickListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "MyActivity";
     private GoogleCloudMessaging gcm;
+    private GcmPubSub pubSub;
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private BroadcastReceiver mDownstreamBroadcastReceiver;
     private Button registerButton;
     private Button unregisterButton;
     private Button sendButton;
+    private Button subscribeTopicButton;
     private EditText senderIdField;
     private EditText stringIdentifierField;
+    private EditText upstreamMessageField;
+    private EditText topicField;
     private TextView registrationTokenFieldView;
     private TextView statusView;
-    private EditText upstreamMessageField;
     private TextView downstreamBundleView;
     private String token;
 
@@ -72,11 +75,19 @@ public class MyActivity extends Activity  {
         downstreamBundleView = (TextView) findViewById(R.id.downstream_bundle);
         upstreamMessageField = (EditText) findViewById(R.id.upstream_message);
         sendButton = (Button) findViewById(R.id.button_send);
+        subscribeTopicButton = (Button) findViewById(R.id.topic_subscribe);
+        topicField = (EditText) findViewById(R.id.topic_name);
 
         gcm = GoogleCloudMessaging.getInstance(this);
+        pubSub = GcmPubSub.getInstance(this);
 
         // If Play Services is not up to date, quit the app.
         checkPlayServices();
+
+        registerButton.setOnClickListener(this);
+        unregisterButton.setOnClickListener(this);
+        subscribeTopicButton.setOnClickListener(this);
+        sendButton.setOnClickListener(this);
 
         // Restore from saved instance state
         if (savedInstanceState != null) {
@@ -125,6 +136,30 @@ public class MyActivity extends Activity  {
         stringIdentifierField.setText("Nexus 5");
     }
 
+    /**
+     * Attach click listeners to buttons.
+     */
+    @Override
+    public void onClick(View v) {
+        Log.d(TAG, "CLick");
+        switch (v.getId()) {
+            case R.id.register_button:
+                registerClient();
+                break;
+            case R.id.unregister_button:
+                unregisterClient();
+                break;
+            case R.id.button_send:
+                sendMessage();
+                break;
+            case R.id.topic_subscribe:
+                subscribeToTopic();
+                break;
+            default:
+                Log.e(TAG, "WAT. How did you click that?");
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -143,6 +178,10 @@ public class MyActivity extends Activity  {
         // Upstream message enabling
         upstreamMessageField.setEnabled(registered);
         sendButton.setEnabled(registered);
+
+        // Topic subscription enabled
+        topicField.setEnabled(registered);
+        subscribeTopicButton.setEnabled(registered);
     }
 
     @Override
@@ -166,82 +205,114 @@ public class MyActivity extends Activity  {
 
     /**
      * Calls the GCM API to register this client if not already registered.
-     * @param view
      * @throws IOException
      */
-    public void registerClient(View view) throws IOException {
+    public void registerClient() {
         // Get the sender ID
-        String senderId = senderIdField.getText().toString();
-        String stringId = stringIdentifierField.getText().toString();
+        String senderId = getSenderId();
+        if (senderId != "") {
+            String stringId = stringIdentifierField.getText().toString();
 
-        if (senderId == "") {
-            showToast("Sender ID and host cannot be empty.");
-            return;
+            // Register with GCM
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            intent.putExtra(RegistrationConstants.SENDER_ID, senderId);
+            intent.putExtra(RegistrationConstants.STRING_IDENTIFIER, stringId);
+            startService(intent);
         }
-
-        // Register with GCM
-        Intent intent = new Intent(this, RegistrationIntentService.class);
-        intent.putExtra(RegistrationConstants.SENDER_ID, senderId);
-        intent.putExtra(RegistrationConstants.STRING_IDENTIFIER, stringId);
-        startService(intent);
     }
 
     /**
      * Calls the GCM API to unregister this client
-     * @param view
      */
-    public void unregisterClient(View view) throws ExecutionException, InterruptedException {
-        String senderId = senderIdField.getText().toString();
-        if (senderId == "") {
-            showToast("Sender ID and host cannot be empty.");
-            return;
-        }
+    public void unregisterClient() {
+        String senderId = getSenderId();
+        if (senderId != "") {
+            // Create the bundle for registration with the server.
+            Bundle registration = new Bundle();
+            registration.putString(RegistrationConstants.ACTION, RegistrationConstants.UNREGISTER_CLIENT);
+            registration.putString(RegistrationConstants.REGISTRATION_TOKEN, token);
 
-        // Create the bundle for registration with the server.
-        Bundle registration = new Bundle();
-        registration.putString(RegistrationConstants.ACTION, RegistrationConstants.UNREGISTER_CLIENT);
-        registration.putString(RegistrationConstants.REGISTRATION_TOKEN, token);
-
-        try {
-            gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
-                    String.valueOf(System.currentTimeMillis()), registration);
-            updateUI("Unregistration SUCCEEDED", false);
-            showToast("Unregistered!");
-        } catch (IOException e) {
-            Log.e(TAG, "Message failed", e);
-            updateUI("Unregistration FAILED", true);
+            try {
+                gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
+                        String.valueOf(System.currentTimeMillis()), registration);
+                updateUI("Unregistration SUCCEEDED", false);
+                showToast("Unregistered!");
+            } catch (IOException e) {
+                Log.e(TAG, "Message failed", e);
+                updateUI("Unregistration FAILED", true);
+            }
         }
     }
 
     /**
      * Sends an upstream message.
-     * @param view
      */
-    public void sendMessage(View view) throws ExecutionException, InterruptedException {
-        String senderId = senderIdField.getText().toString();
-        if (senderId == "") {
-            showToast("Sender ID and host cannot be empty.");
-            return;
+    public void sendMessage() {
+        String senderId = getSenderId();
+        if (senderId != "") {
+            String text = upstreamMessageField.getText().toString();
+            if (text == "") {
+                showToast("Please enter a message to send");
+                return;
+            }
+
+            // Create the bundle for sending the message.
+            Bundle message = new Bundle();
+            message.putString(RegistrationConstants.ACTION, RegistrationConstants.UPSTREAM_MESSAGE);
+            message.putString(RegistrationConstants.EXTRA_KEY_MESSAGE, text);
+
+            try {
+                gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
+                        String.valueOf(System.currentTimeMillis()), message);
+                showToast("Message sent successfully");
+            } catch (IOException e) {
+                Log.e(TAG, "Message failed", e);
+                showToast("Upstream FAILED");
+            }
+        }
+    }
+
+    /**
+     * Subscribes client to the entered topic.
+     */
+    public void subscribeToTopic() {
+        String senderId = getSenderId();
+        if (senderId != "") {
+            String topic = topicField.getText().toString();
+            if (topic == "") {
+                showToast("Please enter a topic name");
+                return;
+            }
+
+            new SubscribeToTopicTask().execute(topic);
+        }
+    }
+
+    /**
+     * Subscribe the client to the passed topic.
+     */
+    private class SubscribeToTopicTask extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            if (params.length > 0) {
+                try {
+                    pubSub.subscribe(token, "/topics/" + params[0], null);
+                    return true;
+                } catch (IOException e) {
+                    Log.e(TAG, "Subscribe to topic failed", e);
+                }
+            }
+            return false;
         }
 
-        String text = upstreamMessageField.getText().toString();
-        if (text == "") {
-            showToast("Please enter a message to send");
-            return;
-        }
-
-        // Create the bundle for sending the message.
-        Bundle message = new Bundle();
-        message.putString(RegistrationConstants.ACTION, RegistrationConstants.UPSTREAM_MESSAGE);
-        message.putString(RegistrationConstants.EXTRA_KEY_MESSAGE, text);
-
-        try {
-            gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
-                    String.valueOf(System.currentTimeMillis()), message);
-            showToast("Message sent successfully");
-        } catch (IOException e) {
-            Log.e(TAG, "Message failed", e);
-            showToast("Upstream FAILED");
+        @Override
+        protected void onPostExecute(Boolean succeed) {
+            if (succeed) {
+                showToast("Subscribed to topic");
+            } else {
+                showToast("Subscription to topic failed");
+            }
         }
     }
 
@@ -249,8 +320,19 @@ public class MyActivity extends Activity  {
      * Show a toast with passed text
      * @param text to be used as toast message
      */
-    public void showToast(CharSequence text) {
+    private void showToast(CharSequence text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * @return the sender ID entered by the user.
+     */
+    private String getSenderId() {
+        String senderId = senderIdField.getText().toString();
+        if (senderId == "") {
+            showToast("Sender ID cannot be empty.");
+        }
+        return senderId;
     }
 
     /**
