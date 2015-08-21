@@ -440,7 +440,7 @@
               this.disableXmpp = false;
               this.regIdLimit_ = 0;
               this.$.recipientsChooser.disableAllRegIds_();
-              this.setCustomListLabel_('Paste a topic. eg. /topic/myTopic');
+              this.setCustomListLabel_('Paste a topic. eg. /topics/myTopic');
               break;
             case 'notification_group':
               this.disableXmpp = false;
@@ -570,8 +570,8 @@
               this.showToast_('You can only send message to one topic at a time.');
               return false;
             }
-            if (!customIds[0].startsWith('/topic/')) {
-              this.showToast_('Your topic is not correct. Make sure it\'s of the format "/topic/<mytopic>"');
+            if (!customIds[0].startsWith('/topics/')) {
+              this.showToast_('Your topic is not correct. Make sure it\'s of the format "/topics/<mytopic>"');
               return false;
             }
           }

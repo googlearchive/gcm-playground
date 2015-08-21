@@ -23,10 +23,10 @@ import (
 )
 
 var (
-	server        *httptest.Server
-	clientUrl     string
-	registerUrl   string
-	unregisterUrl string
+	server         *httptest.Server
+	clientUrl      string
+	registerUrl    string
+	unregisterUrl  string
 	sendMessageUrl string
 )
 
@@ -189,7 +189,6 @@ func TestUnregisterMultipleClients(t *testing.T) {
 		assertEqual(t, res.StatusCode, http.StatusNoContent)
 	}
 }
-
 
 // Test sending a unicast message
 // HTTP with notification only
