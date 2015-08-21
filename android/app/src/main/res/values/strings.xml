@@ -9,4 +9,7 @@
     <string name="button_unregister">Unregister</string>
     <string name="title_activity_main">MainActivity</string>
 
+    <string name="upstream_message_label">Send message upstream</string>
+    <string name="button_send">Send</string>
+
 </resources>

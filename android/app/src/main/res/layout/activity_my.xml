@@ -9,7 +9,8 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:weightSum="1" >
 
         <TextView
             android:layout_width="0dp"
@@ -27,7 +28,8 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:weightSum="1" >
 
         <TextView
             android:layout_width="0dp"
@@ -56,10 +58,11 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:weightSum="1" >
 
         <Button android:id="@+id/register_button"
-            android:layout_weight="1"
+            android:layout_weight="0.5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_register"
@@ -67,7 +70,7 @@
             android:elevation="5dp"
             android:layout_marginTop="8dp" />
         <Button android:id="@+id/unregister_button"
-            android:layout_weight="1"
+            android:layout_weight="0.5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_unregister"
@@ -75,6 +78,29 @@
             android:layout_marginTop="8dp"
             android:enabled="false" />
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1" >
+
+        <EditText android:id="@+id/upstream_message"
+            android:layout_weight="0.8"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/upstream_message_label"
+            android:enabled="false"/>
+        <Button android:id="@+id/button_send"
+            android:layout_weight="0.2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_send"
+            android:onClick="sendMessage"
+            android:elevation="5dp"
+            android:layout_marginTop="8dp"
+            android:enabled="false"/>
     </LinearLayout>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

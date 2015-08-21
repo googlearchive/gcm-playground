@@ -22,6 +22,7 @@ public class RegistrationConstants {
     public static final String STRING_IDENTIFIER = "stringIdentifier";
     public static final String HOST = "host";
     public static final String NEW_DOWNSTREAM_MESSAGE = "newDownstreamMessage";
+    public static final String EXTRA_KEY_MESSAGE = "message";
 
     public static final String EXTRA_KEY_TOKEN = "TOKEN";
     public static final String EXTRA_KEY_BUNDLE = "BUNDLE";
@@ -29,6 +30,7 @@ public class RegistrationConstants {
     public static final String REGISTER_NEW_CLIENT = "register_new_client";
     public static final String UNREGISTER_CLIENT = "unregister_client";
     public static final String REGISTRATION_TOKEN = "registration_token";
+    public static final String UPSTREAM_MESSAGE = "upstream_message";
     public static final String ACTION = "action";
 
 }
