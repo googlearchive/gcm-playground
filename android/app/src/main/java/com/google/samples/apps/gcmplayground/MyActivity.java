@@ -37,6 +37,7 @@ import com.google.samples.apps.gcmplayground.constants.RegistrationConstants;
 import com.google.samples.apps.gcmplayground.util.GcmPlaygroundUtil;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class MyActivity extends Activity  {
 
@@ -48,10 +49,12 @@ public class MyActivity extends Activity  {
     private BroadcastReceiver mDownstreamBroadcastReceiver;
     private Button registerButton;
     private Button unregisterButton;
+    private Button sendButton;
     private EditText senderIdField;
     private EditText stringIdentifierField;
     private TextView registrationTokenFieldView;
     private TextView statusView;
+    private EditText upstreamMessageField;
     private TextView downstreamBundleView;
     private String token;
 
@@ -67,6 +70,8 @@ public class MyActivity extends Activity  {
         registrationTokenFieldView = (TextView) findViewById(R.id.registeration_token);
         statusView = (TextView) findViewById(R.id.status);
         downstreamBundleView = (TextView) findViewById(R.id.downstream_bundle);
+        upstreamMessageField = (EditText) findViewById(R.id.upstream_message);
+        sendButton = (Button) findViewById(R.id.button_send);
 
         gcm = GoogleCloudMessaging.getInstance(this);
 
@@ -134,6 +139,10 @@ public class MyActivity extends Activity  {
         // Button enabling
         registerButton.setEnabled(!registered);
         unregisterButton.setEnabled(registered);
+
+        // Upstream message enabling
+        upstreamMessageField.setEnabled(registered);
+        sendButton.setEnabled(registered);
     }
 
     @Override
@@ -169,7 +178,7 @@ public class MyActivity extends Activity  {
             showToast("Sender ID and host cannot be empty.");
             return;
         }
-        Log.d(TAG, senderId);
+
         // Register with GCM
         Intent intent = new Intent(this, RegistrationIntentService.class);
         intent.putExtra(RegistrationConstants.SENDER_ID, senderId);
@@ -181,45 +190,59 @@ public class MyActivity extends Activity  {
      * Calls the GCM API to unregister this client
      * @param view
      */
-    public void unregisterClient(View view) {
+    public void unregisterClient(View view) throws ExecutionException, InterruptedException {
         String senderId = senderIdField.getText().toString();
         if (senderId == "") {
             showToast("Sender ID and host cannot be empty.");
             return;
         }
-        (new UnregisterClientTask()).execute(senderId);
+
+        // Create the bundle for registration with the server.
+        Bundle registration = new Bundle();
+        registration.putString(RegistrationConstants.ACTION, RegistrationConstants.UNREGISTER_CLIENT);
+        registration.putString(RegistrationConstants.REGISTRATION_TOKEN, token);
+
+        try {
+            gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
+                    String.valueOf(System.currentTimeMillis()), registration);
+            updateUI("Unregistration SUCCEEDED", false);
+            showToast("Unregistered!");
+        } catch (IOException e) {
+            Log.e(TAG, "Message failed", e);
+            updateUI("Unregistration FAILED", true);
+        }
     }
 
-    private class UnregisterClientTask extends AsyncTask<String, Void, Boolean> {
-
-        @Override
-        protected Boolean doInBackground(String... senderId) {
-            Bundle registration = new Bundle();
-
-            // Create the bundle for registration with the server.
-            registration.putString(RegistrationConstants.ACTION, RegistrationConstants.UNREGISTER_CLIENT);
-            registration.putString(RegistrationConstants.REGISTRATION_TOKEN, token);
-            try {
-                gcm.send(GcmPlaygroundUtil.getServerUrl(senderId[0]),
-                        String.valueOf(System.currentTimeMillis()), registration);
-                return true;
-            } catch (IOException e) {
-                Log.e(TAG, "Registration failed", e);
-            }
-            return false;
+    /**
+     * Sends an upstream message.
+     * @param view
+     */
+    public void sendMessage(View view) throws ExecutionException, InterruptedException {
+        String senderId = senderIdField.getText().toString();
+        if (senderId == "") {
+            showToast("Sender ID and host cannot be empty.");
+            return;
         }
 
-        @Override
-        protected void onPostExecute(Boolean suceeded) {
-            if (suceeded) {
-                token = "";
-                updateUI("Unregistration SUCCEEDED", false);
-                showToast("Unregistered!");
-            } else {
-                updateUI("Unregistration FAILED", true);
-            }
+        String text = upstreamMessageField.getText().toString();
+        if (text == "") {
+            showToast("Please enter a message to send");
+            return;
         }
 
+        // Create the bundle for sending the message.
+        Bundle message = new Bundle();
+        message.putString(RegistrationConstants.ACTION, RegistrationConstants.UPSTREAM_MESSAGE);
+        message.putString(RegistrationConstants.EXTRA_KEY_MESSAGE, text);
+
+        try {
+            gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
+                    String.valueOf(System.currentTimeMillis()), message);
+            showToast("Message sent successfully");
+        } catch (IOException e) {
+            Log.e(TAG, "Message failed", e);
+            showToast("Upstream FAILED");
+        }
     }
 
     /**
