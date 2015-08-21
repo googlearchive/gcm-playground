@@ -119,53 +119,20 @@ func ListClients(w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, clientArray)
 }
 
-// TODO(karangoel): Remove after moving all clients to using GCM
-// Handle request to save a new client.
-// The body of this request must contain a `registration_token`.
-// Optionally, the body can contain a `string_identifier` string.
-func CreateClient(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := r.Body.Close(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Decode the passed body into the struct.
-	var client Client
-	if err := json.Unmarshal(body, &client); err != nil {
-		sendUnprocessableEntity(w, err)
-	}
-
-	if !ClientExistsInDb(client.RegistrationToken) {
-		db.Create(&client)
-	}
-	w.WriteHeader(http.StatusCreated)
-	sendJSON(w, client)
+func SendOkResponse(w http.ResponseWriter, res interface{}) {
+	log.Printf("Response: %+v", res)
+	w.WriteHeader(http.StatusOK)
+	sendJSON(w, res)
 }
 
-// TODO(karangoel): Remove after moving all clients to using GCM
-// Handle request to delete a client.
-// The URL of this request must contain a `registration_token`.
-func DeleteClient(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	registration_token := params["registration_token"]
-
-	client := Client{registration_token, ""}
-
-	if !ClientExistsInDb(registration_token) {
-		w.WriteHeader(http.StatusNotFound)
-	} else {
-		db.Delete(&Client{}, "registration_token = ?", client.RegistrationToken)
-		w.WriteHeader(http.StatusNoContent)
-	}
+func SendMessageSendError(w http.ResponseWriter, sendErr error) {
+	log.Println("Message send error: %+v", sendErr)
+	w.WriteHeader(http.StatusInternalServerError)
+	sendJSON(w, sendErr)
 }
 
 // Handle request to send a new message.
 func SendMessage(w http.ResponseWriter, r *http.Request) {
-	// TODO(karangoel): Implementation incomplete
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 
 	if err != nil {
@@ -188,28 +155,32 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 		// Send HTTP message
 		var m gcm.HttpMessage
 		if err := json.Unmarshal(message.Message, &m); err != nil {
-			log.Println("Message Unmarshal error")
-			log.Printf("%+v", err)
+			log.Println("Message Unmarshal error: %+v", err)
 			sendUnprocessableEntity(w, err)
 			return
 		}
 
 		res, sendErr := gcm.SendHttp(apiKey, m)
 		if sendErr != nil {
-			log.Println("Message send error")
-			log.Printf("%+v", sendErr)
-			w.WriteHeader(http.StatusInternalServerError)
-			sendJSON(w, sendErr)
+			SendMessageSendError(w, sendErr)
+		} else {
+			SendOkResponse(w, res)
+		}
+	} else if protocol == "xmpp" {
+		// Send XMPP message
+		var m gcm.XmppMessage
+		if err := json.Unmarshal(message.Message, &m); err != nil {
+			log.Println("Message Unmarshal error: %+v", err)
+			sendUnprocessableEntity(w, err)
 			return
 		}
 
-		log.Printf("%+v", res)
-		w.WriteHeader(http.StatusOK)
-		sendJSON(w, res)
-	} else if protocol == "xmpp" {
-		// Send XMPP message
-		// TODO(karangoel): Implement this.
-		w.WriteHeader(http.StatusOK)
+		res, _, sendErr := gcm.SendXmpp(senderId, apiKey, m)
+		if sendErr != nil {
+			SendMessageSendError(w, sendErr)
+		} else {
+			SendOkResponse(w, res)
+		}
 	} else {
 		// Error
 		w.WriteHeader(http.StatusBadRequest)
@@ -262,16 +233,6 @@ func Handler() http.Handler {
 	// GET /clients
 	// List all registered registration IDs
 	router.HandleFunc("/clients", ListClients).Methods("GET")
-
-	// TODO(karangoel): Remove after moving all clients to using GCM
-	// POST /clients
-	// Add a new client
-	router.HandleFunc("/clients", CreateClient).Methods("POST")
-
-	// TODO(karangoel): Remove after moving all clients to using GCM
-	// DELETE /clients
-	// Remove an existing client
-	router.HandleFunc("/clients/{registration_token}", DeleteClient).Methods("DELETE")
 
 	// POST /message
 	// Send a new message
