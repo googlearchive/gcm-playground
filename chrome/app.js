@@ -70,6 +70,8 @@ function isRegistered(cb) {
  */
 function buildMessagePayload(data) {
   return {
+    // This is not generating strong unique IDs, which is what you probably
+    // want in a production application.
     messageId: new Date().getTime().toString(),
     destinationId: document.getElementById('senderId').value + '@gcm.googleapis.com',
     data: data
