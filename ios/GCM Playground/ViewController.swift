@@ -136,6 +136,18 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
   }
 
+  @IBAction func sendUpstreamMessage(sender: UIButton) {
+    let text = upstreamMessageField.text
+    if (text == "") {
+      showAlert("Can't send message", message: "Please enter a message to send")
+      return
+    }
+
+    let message = ["message": text]
+    sendMessage(message)
+    showAlert("Message sent successfully", message: "")
+  }
+
   // Got a new GCM registration token
   func updateRegistrationStatus(notification: NSNotification) {
     if let info = notification.userInfo as? Dictionary<String,String> {
