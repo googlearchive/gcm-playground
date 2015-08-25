@@ -43,6 +43,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "MyActivity";
+    private static final String TOPIC_PREFIX = "/topics/";
     private GoogleCloudMessaging gcm;
     private GcmPubSub pubSub;
 
@@ -141,7 +142,6 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     @Override
     public void onClick(View v) {
-        Log.d(TAG, "CLick");
         switch (v.getId()) {
             case R.id.register_button:
                 registerClient();
@@ -278,11 +278,13 @@ public class MyActivity extends Activity implements View.OnClickListener {
     public void subscribeToTopic() {
         String senderId = getSenderId();
         if (senderId != "") {
-            String topic = topicField.getText().toString();
-            if (topic == "") {
-                showToast("Please enter a topic name");
+            String topic = topicField.getText().toString().trim();
+            if (topic == "" || !topic.startsWith(TOPIC_PREFIX) ||
+                    topic.length() <= TOPIC_PREFIX.length()) {
+                showToast("Make sure topic is in format \"/topics/topicName\"");
                 return;
             }
+
 
             new SubscribeToTopicTask().execute(topic);
         }
@@ -293,11 +295,14 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     private class SubscribeToTopicTask extends AsyncTask<String, Void, Boolean> {
 
+        private String topic;
+
         @Override
         protected Boolean doInBackground(String... params) {
             if (params.length > 0) {
+                topic = params[0];
                 try {
-                    pubSub.subscribe(token, "/topics/" + params[0], null);
+                    pubSub.subscribe(token, topic, null);
                     return true;
                 } catch (IOException e) {
                     Log.e(TAG, "Subscribe to topic failed", e);
@@ -309,9 +314,9 @@ public class MyActivity extends Activity implements View.OnClickListener {
         @Override
         protected void onPostExecute(Boolean succeed) {
             if (succeed) {
-                showToast("Subscribed to topic");
+                updateUI("Subscribed to topic: " + topic, true);
             } else {
-                showToast("Subscription to topic failed");
+                updateUI("Subscription to topic failed: " + topic, false);
             }
         }
     }
