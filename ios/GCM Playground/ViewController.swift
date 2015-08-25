@@ -14,12 +14,13 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITextFieldDelegate {
 
   let registerNewClient: String = "register_new_client"
   let unregisterClient: String = "unregister_client"
 
   let gcmAddress: String = "@gcm.googleapis.com"
+  let topicPrefix: String = "/topics/"
 
   @IBOutlet weak var registrationStatus: UITextView!
   @IBOutlet weak var registrationToken: UITextView!
@@ -30,6 +31,15 @@ class ViewController: UIViewController {
 
   @IBOutlet weak var registerButton: UIButton!
   @IBOutlet weak var unregisterButton: UIButton!
+
+  @IBOutlet weak var topicNameField: UITextField!
+  @IBOutlet weak var topicSubscribeButton: UIButton!
+
+  @IBOutlet weak var upstreamMessageField: UITextField!
+  @IBOutlet weak var upstreamMessageSendButton: UIButton!
+
+  @IBOutlet weak var pubsubView: UIView!
+  @IBOutlet weak var upstreamView: UIView!
 
   var apnsToken: NSData!
   var token: String = ""
@@ -42,10 +52,6 @@ class ViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-
-    senderIdField.keyboardType = UIKeyboardType.NumberPad
-    registrationToken.textContainer.lineBreakMode = NSLineBreakMode.ByClipping
-    unregisterButton.enabled = false
 
     appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
 
@@ -62,8 +68,27 @@ class ViewController: UIViewController {
     NSNotificationCenter.defaultCenter().addObserver(self, selector: "showReceivedMessage:",
       name: appDelegate.messageKey, object: nil)
 
+    self.senderIdField.delegate = self
+    self.stringIdentifierField.delegate = self
+    self.topicNameField.delegate = self
+    self.upstreamMessageField.delegate = self
+
+    // Add borders to pubsub and upstream message views
+    pubsubView.layer.borderColor = UIColor.grayColor().CGColor
+    pubsubView.layer.borderWidth = 1
+    pubsubView.layer.masksToBounds = true
+    upstreamView.layer.borderColor = UIColor.grayColor().CGColor
+    upstreamView.layer.borderWidth = 1
+    upstreamView.layer.masksToBounds = false
+
     // TODO(karangoel): Remove this, only for development
     senderIdField.text = "1015367374593"
+  }
+
+  // Hide the keyboard when click on "Return" or "Done" or similar
+  func textFieldShouldReturn(textField: UITextField) -> Bool {
+    self.view.endEditing(true)
+    return false
   }
 
   override func didReceiveMemoryWarning() {
@@ -99,6 +124,16 @@ class ViewController: UIViewController {
     sendMessage(message)
     token = ""
     updateUI("Unregistration COMPLETE!", registered: false)
+  }
+
+
+  @IBAction func topicChangeHandler(sender: UITextField) {
+    var userInput = topicNameField.text
+    if (userInput != "") {
+      topicSubscribeButton.enabled = true
+    } else {
+      topicSubscribeButton.enabled = false
+    }
   }
 
   // Got a new GCM registration token
@@ -153,7 +188,6 @@ class ViewController: UIViewController {
     }
   }
 
-  // TODO(karangoel): Test this. Show notification content in the UI.
   func showReceivedMessage(notification: NSNotification) {
     if let info = notification.userInfo as? Dictionary<String,AnyObject> {
       downstreamPayloadField.text = info.description
@@ -167,6 +201,7 @@ class ViewController: UIViewController {
     let message = ["action": registerNewClient, "token": token, "stringIdentifier": stringIdentifierField.text]
     sendMessage(message)
     self.updateUI("Registration COMPLETE!", registered: true)
+    topicSubscribeButton.enabled = true
   }
 
   func sendMessage(message: NSDictionary) {
@@ -180,14 +215,45 @@ class ViewController: UIViewController {
     GCMService.sharedInstance().sendMessage(message as [NSObject : AnyObject], to: to, withId: nextMessageID)
   }
 
+  @IBAction func subscribeToTopic(sender: UIButton) {
+    let topic = topicNameField.text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+    // Topic must begin with "/topics/" and have a name after the prefix
+    if (topic == "" || !topic.hasPrefix(topicPrefix) || count(topic) <= count(topicPrefix)) {
+      showAlert("Invalid topic name", message: "Make sure topic is in format \"/topics/topicName\"")
+      return
+    }
+
+    GCMPubSub.sharedInstance().subscribeWithToken(token, topic: topic,
+      options: nil, handler: {(NSError error) -> Void in
+        if (error != nil) {
+          // Error 3001 is "already subscribed". Treat as success.
+          if error.code == 3001 {
+            println("Already subscribed to \(topic)")
+            self.updateUI("Subscribed to topic \(topic)", registered: true)
+          } else {
+            println("Subscription failed: \(error.localizedDescription)");
+            self.updateUI("Subscription failed for topic \(topic)", registered: false)
+          }
+        } else {
+          NSLog("Subscribed to \(topic)");
+          self.updateUI("Subscribed to topic \(topic)", registered: true)
+        }
+    })
+  }
+
   func updateUI(status: String, registered: Bool) {
     // Set status and token text
     registrationStatus.text = status
     registrationToken.text = token
 
     // Button enabling
-    registerButton.enabled = !registered;
-    unregisterButton.enabled = registered;
+    registerButton.enabled = !registered
+    unregisterButton.enabled = registered
+
+    // Topic and upstream message field
+    topicNameField.enabled = registered
+    upstreamMessageField.enabled = registered
+    upstreamMessageSendButton.enabled = registered
   }
 
   func showAlert(title:String, message:String) {
