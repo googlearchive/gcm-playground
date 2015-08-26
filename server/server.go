@@ -35,11 +35,13 @@ const (
 	// What port should the server run on
 	port = "4260"
 
-	actionKey         = "action"
-	registerNewClient = "register_new_client"
-	unregisterClient  = "unregister_client"
-	token             = "registration_token"
-	stringIdentifier  = "stringIdentifier"
+	actionKey          = "action"
+	registerNewClient  = "register_new_client"
+	unregisterClient   = "unregister_client"
+	token              = "registration_token"
+	stringIdentifier   = "stringIdentifier"
+	statusRegistered   = "registered"
+	statusUnregistered = "unregistered"
 )
 
 var (
@@ -188,6 +190,19 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func SendClientStatus(token string, d gcm.Data) error {
+	m := gcm.XmppMessage{
+		To:       token,
+		Priority: 10,
+		Data:     d,
+	}
+	_, _, sendErr := gcm.SendXmpp(senderId, apiKey, m)
+	if sendErr != nil {
+		return fmt.Errorf("sending ack failed: %v", sendErr)
+	}
+	return nil
+}
+
 // Callback for gcmd listen: check action and dispatch server method
 func onMessageReceived(cm gcm.CcsMessage) error {
 	log.Printf("Received Message: %+v", cm)
@@ -209,6 +224,12 @@ func onMessageReceived(cm gcm.CcsMessage) error {
 		if !ClientExistsInDb(client.RegistrationToken) {
 			db.Create(&client)
 		}
+
+		// Send the client registered status.
+		err := SendClientStatus(token, gcm.Data{actionKey: registerNewClient, "status": statusRegistered})
+		if err != nil {
+			log.Println(err)
+		}
 	case unregisterClient:
 		token, ok := d[token].(string)
 		if !ok {
@@ -221,6 +242,12 @@ func onMessageReceived(cm gcm.CcsMessage) error {
 			return errors.New("Client does not exist in database.")
 		} else {
 			db.Delete(&Client{}, "registration_token = ?", client.RegistrationToken)
+		}
+
+		// Send the client registered status.
+		err := SendClientStatus(token, gcm.Data{actionKey: unregisterClient, "status": statusUnregistered})
+		if err != nil {
+			log.Println(err)
 		}
 	}
 	return nil
