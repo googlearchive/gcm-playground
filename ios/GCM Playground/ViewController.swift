@@ -18,6 +18,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
   let registerNewClient: String = "register_new_client"
   let unregisterClient: String = "unregister_client"
+  let statusRegistered: String = "registered"
+  let statusUnegistered: String = "unregistered"
+
+  let keyAction: String = "action"
+  let keyStatus: String = "status"
+  let keyRegistrationToken: String = "registration_token"
+  let keyStringIdentifier: String = "stringIdentifier"
 
   let gcmAddress: String = "@gcm.googleapis.com"
   let topicPrefix: String = "/topics/"
@@ -31,6 +38,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
   @IBOutlet weak var registerButton: UIButton!
   @IBOutlet weak var unregisterButton: UIButton!
+  @IBOutlet weak var progressIndicator: UIActivityIndicatorView!
 
   @IBOutlet weak var topicNameField: UITextField!
   @IBOutlet weak var topicSubscribeButton: UIButton!
@@ -65,7 +73,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     NSNotificationCenter.defaultCenter().addObserver(self, selector: "onTokenRefresh:",
       name: appDelegate.tokenRefreshKey, object: nil)
     // New message received
-    NSNotificationCenter.defaultCenter().addObserver(self, selector: "showReceivedMessage:",
+    NSNotificationCenter.defaultCenter().addObserver(self, selector: "handleReceivedMessage:",
       name: appDelegate.messageKey, object: nil)
 
     self.senderIdField.delegate = self
@@ -93,10 +101,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
-    // Dispose of any resources that can be recreated.
   }
 
-  // Click handler for register button
+  ////////////////////////////////////////
+  // Actions (Listeners)
+  ////////////////////////////////////////
+
+  // Register button click handler.
   @IBAction func registerClient(sender: UIButton) {
     // Get the fields values
     gcmSenderID = senderIdField.text
@@ -108,6 +119,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
       return
     }
 
+    progressIndicator.startAnimating()
+
     // Register with GCM and get token
     var instanceIDConfig = GGLInstanceIDConfig.defaultConfig()
     instanceIDConfig.delegate = appDelegate
@@ -118,15 +131,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
       scope: kGGLInstanceIDScopeGCM, options: registrationOptions, handler: registrationHandler)
   }
 
-  // Click handler for unregister button
+  // Unregister button click handler.
   @IBAction func unregisterFromAppServer(sender: UIButton) {
-    let message = ["action": unregisterClient, "token": token]
+    let message = [keyAction: unregisterClient, keyRegistrationToken: token]
+    progressIndicator.startAnimating()
     sendMessage(message)
-    token = ""
-    updateUI("Unregistration COMPLETE!", registered: false)
   }
 
-
+  // Topic field editing handler.
   @IBAction func topicChangeHandler(sender: UITextField) {
     var userInput = topicNameField.text
     if (userInput != "") {
@@ -136,6 +148,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
   }
 
+  // Send upstream message button handler.
   @IBAction func sendUpstreamMessage(sender: UIButton) {
     let text = upstreamMessageField.text
     if (text == "") {
@@ -148,85 +161,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     showAlert("Message sent successfully", message: "")
   }
 
-  // Got a new GCM registration token
-  func updateRegistrationStatus(notification: NSNotification) {
-    if let info = notification.userInfo as? Dictionary<String,String> {
-      if let error = info["error"] {
-        registrationError(error)
-      } else if let regToken = info["registrationToken"] {
-        updateUI("Registration SUCCEEDED", registered: true)
-      }
-    } else {
-      println("Software failure.")
-    }
-  }
-
-  // Show the passed error message on the UI
-  func registrationError(error: String) {
-    updateUI("Registration FAILED", registered: false)
-    showAlert("Error registering with GCM", message: error)
-  }
-
-  // Save the iOS APNS token
-  func saveApnsToken(notification: NSNotification) {
-    if let info = notification.userInfo as? Dictionary<String,NSData> {
-      if let deviceToken = info["deviceToken"] {
-        apnsToken = deviceToken
-      } else {
-        println("Could not decode the NSNotification that contains APNS token.")
-      }
-    } else {
-      println("Could not decode the NSNotification userInfo that contains APNS token.")
-    }
-  }
-
-  // GCM token should be refreshed
-  func onTokenRefresh() {
-    // A rotation of the registration tokens is happening, so the app needs to request a new token.
-    println("The GCM registration token needs to be changed.")
-    GGLInstanceID.sharedInstance().tokenWithAuthorizedEntity(gcmSenderID,
-      scope: kGGLInstanceIDScopeGCM, options: registrationOptions, handler: registrationHandler)
-  }
-
-  // Callback for GCM registration
-  func registrationHandler(registrationToken: String!, error: NSError!) {
-    if (registrationToken != nil) {
-      token = registrationToken
-      println("Registration Token: \(registrationToken)")
-      registerWithAppServer()
-    } else {
-      println("Registration to GCM failed with error: \(error.localizedDescription)")
-      registrationError(error.localizedDescription)
-    }
-  }
-
-  func showReceivedMessage(notification: NSNotification) {
-    if let info = notification.userInfo as? Dictionary<String,AnyObject> {
-      downstreamPayloadField.text = info.description
-    } else {
-      println("Software failure. Guru meditation.")
-    }
-  }
-
-  // Call the app server and register the current reg token
-  func registerWithAppServer() {
-    let message = ["action": registerNewClient, "token": token, "stringIdentifier": stringIdentifierField.text]
-    sendMessage(message)
-    self.updateUI("Registration COMPLETE!", registered: true)
-    topicSubscribeButton.enabled = true
-  }
-
-  func sendMessage(message: NSDictionary) {
-    // The resolution for timeIntervalSince1970 is in millisecond. So this will work
-    // when you are sending no more than 1 message per millisecond.
-    // To use in production, there should be a database of all used IDs to make sure
-    // we don't use an already-used ID.
-    let nextMessageID: String = NSDate().timeIntervalSince1970.description
-
-    let to: String = senderIdField.text + gcmAddress
-    GCMService.sharedInstance().sendMessage(message as [NSObject : AnyObject], to: to, withId: nextMessageID)
-  }
-
+  // Subscribe to topic button handler.
   @IBAction func subscribeToTopic(sender: UIButton) {
     let topic = topicNameField.text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
     // Topic must begin with "/topics/" and have a name after the prefix
@@ -253,6 +188,108 @@ class ViewController: UIViewController, UITextFieldDelegate {
     })
   }
 
+  ////////////////////////////////////////
+  // Utility functions
+  ////////////////////////////////////////
+
+  // Save the iOS APNS token
+  func saveApnsToken(notification: NSNotification) {
+    if let info = notification.userInfo as? Dictionary<String,NSData> {
+      if let deviceToken = info["deviceToken"] {
+        apnsToken = deviceToken
+      } else {
+        println("Could not decode the NSNotification that contains APNS token.")
+      }
+    } else {
+      println("Could not decode the NSNotification userInfo that contains APNS token.")
+    }
+  }
+
+  // Got a new GCM registration token
+  func updateRegistrationStatus(notification: NSNotification) {
+    if let info = notification.userInfo as? Dictionary<String,String> {
+      if let error = info["error"] {
+        registrationError(error)
+      } else if let regToken = info["registrationToken"] {
+        updateUI("Registration SUCCEEDED", registered: true)
+      }
+    } else {
+      println("Software failure.")
+    }
+  }
+
+  // Show the passed error message on the UI
+  func registrationError(error: String) {
+    updateUI("Registration FAILED", registered: false)
+    showAlert("Error registering with GCM", message: error)
+  }
+
+  // GCM token should be refreshed
+  func onTokenRefresh() {
+    // A rotation of the registration tokens is happening, so the app needs to request a new token.
+    println("The GCM registration token needs to be changed.")
+    GGLInstanceID.sharedInstance().tokenWithAuthorizedEntity(gcmSenderID,
+      scope: kGGLInstanceIDScopeGCM, options: registrationOptions, handler: registrationHandler)
+  }
+
+  // Callback for GCM registration
+  func registrationHandler(registrationToken: String!, error: NSError!) {
+    if (registrationToken != nil) {
+      token = registrationToken
+      println("Registration Token: \(registrationToken)")
+      registerWithAppServer()
+    } else {
+      println("Registration to GCM failed with error: \(error.localizedDescription)")
+      registrationError(error.localizedDescription)
+    }
+  }
+
+  // Handles a new downstream message.
+  func handleReceivedMessage(notification: NSNotification) {
+    progressIndicator.stopAnimating()
+    if let info = notification.userInfo as? Dictionary<String,AnyObject> {
+      if let action = info[keyAction] as? String {
+        if let status = info[keyStatus] as? String {
+          // We have an action and status
+          if (action == registerNewClient && status == statusRegistered) {
+            self.updateUI("Registration COMPLETE!", registered: true)
+            topicSubscribeButton.enabled = true
+            return
+          } else if (action == unregisterClient && status == statusUnegistered) {
+            token = ""
+            updateUI("Unregistration COMPLETE!", registered: false)
+            return
+          }
+        }
+      }
+      downstreamPayloadField.text = info.description
+    } else {
+      println("Software failure. Guru meditation.")
+    }
+  }
+
+  // Calls the app server to register the current reg token.
+  func registerWithAppServer() {
+    let message = [keyAction: registerNewClient, keyRegistrationToken: token, keyStringIdentifier: stringIdentifierField.text]
+    sendMessage(message)
+  }
+
+  // Sends an upstream message.
+  func sendMessage(message: NSDictionary) {
+    // The resolution for timeIntervalSince1970 is in millisecond. So this will work
+    // when you are sending no more than 1 message per millisecond.
+    // To use in production, there should be a database of all used IDs to make sure
+    // we don't use an already-used ID.
+    let nextMessageID: String = NSDate().timeIntervalSince1970.description
+
+    let to: String = senderIdField.text + gcmAddress
+    GCMService.sharedInstance().sendMessage(message as [NSObject : AnyObject], to: to, withId: nextMessageID)
+  }
+
+  ////////////////////////////////////////
+  // UI functions
+  ////////////////////////////////////////
+
   func updateUI(status: String, registered: Bool) {
     // Set status and token text
     registrationStatus.text = status
@@ -268,6 +305,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     upstreamMessageSendButton.enabled = registered
   }
 
+  // Shows a toast with passed text.
   func showAlert(title:String, message:String) {
     let alert = UIAlertController(title: title,
       message: message, preferredStyle: .Alert)
