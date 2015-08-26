@@ -43,17 +43,6 @@
             android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:layout_marginTop="8dp"
-        android:background="#ffffff"
-        android:editable="false"
-        android:textColor="#010101"
-        android:layout_gravity="right" />
-
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
@@ -66,14 +55,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_register"
-            android:elevation="5dp"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="2dp" />
         <Button android:id="@+id/unregister_button"
             android:layout_weight="0.5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_unregister"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="2dp"
             android:enabled="false" />
 
     </LinearLayout>
@@ -81,50 +69,73 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="1" >
+        android:orientation="vertical"
+        android:weightSum="1"
+        android:background="@drawable/border"
+        android:layout_marginTop="5dp"
+        android:padding="5dp">
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.3"
-            android:text="@string/pubsub_prefix_label"
-            android:enabled="false"/>
-        <EditText android:id="@+id/topic_name"
-            android:layout_weight="0.5"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/pubsub_topic_label"
-            android:enabled="false"/>
-        <Button android:id="@+id/topic_subscribe"
-            android:layout_weight="0.2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/button_subscribe"
-            android:elevation="5dp"
-            android:layout_marginTop="8dp"
-            android:enabled="false"/>
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Subscribe to Topic" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <EditText android:id="@+id/topic_name"
+                android:layout_weight="0.8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/pubsub_topic_label"
+                android:enabled="false"/>
+            <Button android:id="@+id/topic_subscribe"
+                android:layout_weight="0.2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_subscribe"
+                android:enabled="false"/>
+        </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="1" >
+        android:orientation="vertical"
+        android:weightSum="1"
+        android:background="@drawable/border"
+        android:layout_marginTop="5dp"
+        android:padding="5dp">
 
-        <EditText android:id="@+id/upstream_message"
-            android:layout_weight="0.8"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/upstream_message_label"
-            android:enabled="false"/>
-        <Button android:id="@+id/button_send"
-            android:layout_weight="0.2"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/button_send"
-            android:elevation="5dp"
-            android:layout_marginTop="8dp"
-            android:enabled="false"/>
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Send upstream message" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <EditText android:id="@+id/upstream_message"
+                android:layout_weight="0.8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/upstream_message_label"
+                android:enabled="false"/>
+            <Button android:id="@+id/button_send"
+                android:layout_weight="0.2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_send"
+                android:enabled="false"/>
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -148,7 +159,8 @@
             android:layout_marginTop="8dp"
             android:background="#ffffff"
             android:editable="false"
-            android:textColor="#010101" />
+            android:textColor="#010101"
+            android:textSize="10dp" />
 
         <TextView android:id="@+id/downstream_bundle"
             android:layout_width="match_parent"
