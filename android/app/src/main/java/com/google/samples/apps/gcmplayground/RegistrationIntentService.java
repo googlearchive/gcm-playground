@@ -49,7 +49,6 @@ public class RegistrationIntentService extends IntentService {
             // calls are local.
             senderId = extras.getString(RegistrationConstants.SENDER_ID);
             String string_identifier = extras.getString(RegistrationConstants.STRING_IDENTIFIER);
-            String host = extras.getString(RegistrationConstants.HOST);
 
             token = InstanceID.getInstance(this)
                     .getToken(senderId, GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);

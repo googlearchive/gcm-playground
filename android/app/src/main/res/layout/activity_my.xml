@@ -51,18 +51,23 @@
         android:weightSum="1" >
 
         <Button android:id="@+id/register_button"
-            android:layout_weight="0.5"
+            android:layout_weight="0.4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_register"
             android:layout_marginTop="2dp" />
         <Button android:id="@+id/unregister_button"
-            android:layout_weight="0.5"
+            android:layout_weight="0.4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_unregister"
             android:layout_marginTop="2dp"
             android:enabled="false" />
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progress_bar"
+            android:visibility="invisible" />
 
     </LinearLayout>
 

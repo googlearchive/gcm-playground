@@ -27,6 +27,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +50,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private BroadcastReceiver mDownstreamBroadcastReceiver;
+    private ProgressBar progressBar;
     private Button registerButton;
     private Button unregisterButton;
     private Button sendButton;
@@ -78,6 +80,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
         sendButton = (Button) findViewById(R.id.button_send);
         subscribeTopicButton = (Button) findViewById(R.id.topic_subscribe);
         topicField = (EditText) findViewById(R.id.topic_name);
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         gcm = GoogleCloudMessaging.getInstance(this);
         pubSub = GcmPubSub.getInstance(this);
@@ -104,10 +107,8 @@ public class MyActivity extends Activity implements View.OnClickListener {
                 boolean sentToken = intent.getBooleanExtra(
                         RegistrationConstants.SENT_TOKEN_TO_SERVER, false);
 
-                if (sentToken) {
-                    token = intent.getStringExtra(RegistrationConstants.EXTRA_KEY_TOKEN);
-                    updateUI("Registration SUCCEEDED", true);
-                } else {
+                token = intent.getStringExtra(RegistrationConstants.EXTRA_KEY_TOKEN);
+                if (!sentToken) {
                     updateUI("Registration FAILED", false);
                 }
             }
@@ -118,12 +119,26 @@ public class MyActivity extends Activity implements View.OnClickListener {
             public void onReceive(Context context, Intent intent) {
                 String from = intent.getStringExtra(RegistrationConstants.SENDER_ID);
                 Bundle data = intent.getBundleExtra(RegistrationConstants.EXTRA_KEY_BUNDLE);
-                String message = data.getString("message");
-
-                downstreamBundleView.setText(data.toString());
+                String message = data.getString(RegistrationConstants.EXTRA_KEY_MESSAGE);
 
                 Log.d(TAG, "Received from >" + from + "< with >" + data.toString() + "<");
                 Log.d(TAG, "Message: " + message);
+
+                String action = data.getString(RegistrationConstants.ACTION);
+                String status = data.getString(RegistrationConstants.STATUS);
+
+                if (RegistrationConstants.REGISTER_NEW_CLIENT.equals(action) &&
+                        RegistrationConstants.STATUS_REGISTERED.equals(status)) {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    updateUI("Registration SUCCEEDED", true);
+                } else if (RegistrationConstants.UNREGISTER_CLIENT.equals(action) &&
+                        RegistrationConstants.STATUS_UNREGISTERED.equals(status)) {
+                    token = "";
+                    updateUI("Unregistration SUCCEEDED", false);
+                    showToast("Unregistered!");
+                } else {
+                    downstreamBundleView.setText(data.toString());
+                }
             }
         };
 
@@ -213,6 +228,8 @@ public class MyActivity extends Activity implements View.OnClickListener {
         if (senderId != "") {
             String stringId = stringIdentifierField.getText().toString();
 
+            progressBar.setVisibility(View.VISIBLE);
+
             // Register with GCM
             Intent intent = new Intent(this, RegistrationIntentService.class);
             intent.putExtra(RegistrationConstants.SENDER_ID, senderId);
@@ -235,8 +252,6 @@ public class MyActivity extends Activity implements View.OnClickListener {
             try {
                 gcm.send(GcmPlaygroundUtil.getServerUrl(senderId),
                         String.valueOf(System.currentTimeMillis()), registration);
-                updateUI("Unregistration SUCCEEDED", false);
-                showToast("Unregistered!");
             } catch (IOException e) {
                 Log.e(TAG, "Message failed", e);
                 updateUI("Unregistration FAILED", true);
