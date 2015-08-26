@@ -255,6 +255,7 @@
                                         </variation>
                                         <connections>
                                             <action selector="registerClient:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="ZMt-bX-8a8"/>
+                                            <action selector="sendUpstreamMessage:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="MyR-O8-DuR"/>
                                         </connections>
                                     </button>
                                 </subviews>
