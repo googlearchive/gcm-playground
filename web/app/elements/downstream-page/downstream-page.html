@@ -17,16 +17,16 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
-<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
-<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
 <link rel="import" href="../message-type-chooser/message-type-chooser.html">
 <link rel="import" href="../protocol-chooser/protocol-chooser.html">
 <link rel="import" href="../recipients-chooser/recipients-chooser.html">
 <link rel="import" href="../request-previewer/request-previewer.html">
+<link rel="import" href="notification-payload.html">
+<link rel="import" href="options-payload.html">
+<link rel="import" href="message-body.html">
 
 
 <dom-module id="downstream-page">
@@ -35,7 +35,6 @@
     :host {
       display: block;
     }
-
     paper-material {
       @apply(--layout-vertical);
       border-radius: 2px;
@@ -44,57 +43,20 @@
       margin: 16px auto;
       background: white;
     }
-
     #parameters {
       display: block;
     }
-
     #parameters section, #preview section {
       padding: 20px;
     }
-
     #parameters section h4, #preview section h4 {
       margin-bottom: 30px;
     }
-
-    #parameters .notif_line, #parameters .line {
-      width: 47%;
-      display: inline-block;
-    }
-
-    #parameters .notif_line:nth-child(odd) {
-      margin-left: 10px;
-    }
-
-    #parameters .notif_line paper-input, #parameters .notif_line paper-textarea,
-    #parameters .line paper-input, #parameters .line paper-textarea {
-      width: 70%;
-      margin-left: 10px;
-      display: inline-block;
-    }
-
-    #parameters .line {
-      margin-bottom: 20px;
-    }
-
-    #parameters .line span {
-      margin-left: 24px;
-    }
-
-    #parameters .priority {
-      margin-top: 20px;
-    }
-
-    #parameters #priority {
-      width: 40%;
-    }
-
     #preview paper-button {
       width: 250px;
-      background-color: var(--default-primary-color);
-      color: #fff;
+      /*background-color: var(--default-primary-color);
+      color: #fff;*/
     }
-
     #preview paper-button[disabled] {
       color: var(--disabled-text-color) !important;
       background: var(--paper-fab-disabled-background) !important;
@@ -122,92 +84,42 @@
       <paper-material elevation="2" id="parameters">
         <h3>Step 4: Set Options</h3>
 
-        <section>
-          <h4>Notification Payload</h4>
+        <!-- Get form settings -->
+        <iron-ajax auto
+                   url="/settings.json"
+                   handleAs="json"
+                   last-response="{{settings}}"
+                   method='GET'>
+        </iron-ajax>
 
-          <!-- Get form settings -->
-          <iron-ajax auto
-                     url="/settings.json"
-                     handleAs="json"
-                     last-response="{{settings}}"
-                     method='GET'>
-          </iron-ajax>
-
-          <template is="dom-repeat" items="{{settings.notificationFields_}}" as="field">
-            <div class="notif_line">
-              <template is="dom-if" if="{{field.android}}">
-                <iron-icon icon="icons:android"></iron-icon>
-              </template>
-              <template is="dom-if" if="{{!field.android}}">
-                <iron-icon icon="icons:d"></iron-icon>
-              </template>
-              <template is="dom-if" if="{{field.ios}}">
-                <iron-icon src="/images/ios.svg"></iron-icon>
-              </template>
-              <template is="dom-if" if="{{!field.ios}}">
-                <iron-icon icon="icons:d"></iron-icon>
-              </template>
-              <template is="dom-if" if="{{!field.textarea}}">
-                <paper-input id="{{field.id}}" label="{{field.label}}"></paper-input>
-              </template>
-              <template is="dom-if" if="{{field.textarea}}">
-                <paper-textarea id="{{field.id}}" label="{{field.label}}"></paper-textarea>
-              </template>
-              <paper-tooltip margin-top="-5">{{field.tooltip}}</paper-tooltip>
-            </div>
-          </template>
-        </section>
+        <notification-payload fields="[[settings.notificationFields_]]"></notification-payload>
 
         <section>
           <h4>Data Payload</h4>
           <p><a href="https://developers.google.com/cloud-messaging/server-ref#send-downstream">Learn more about it</a></p>
-          <paper-textarea id="data" label="JSON"></paper-textarea>
+          <paper-textarea id="data" label="JSON" on-change="updateMessageBody_"></paper-textarea>
         </section>
 
-        <section>
-          <h4>Other Options</h4>
-
-          <div class="line">
-            <paper-toggle-button id="delivery_receipt_requested" disabled="{{httpSelected}}"></paper-toggle-button>
-            <span>Delivery Receipt Requested</span>
-            <paper-tooltip margin-top="0">This parameter lets the app server request confirmation of message delivery.</paper-tooltip>
-          </div>
-          <template is="dom-repeat" items="{{settings.optionsFields_}}" as="field">
-            <div class="line">
-              <template is="dom-if" if="{{!field.input}}">
-                <paper-toggle-button id="{{field.id}}"></paper-toggle-button>
-                <span>{{field.label}}</span>
-              </template>
-              <template is="dom-if" if="{{field.input}}">
-                <paper-input label="{{field.label}}" id="{{field.id}}"></paper-input>
-              </template>
-              <paper-tooltip margin-top="0">{{field.tooltip}}</paper-tooltip>
-            </div>
-          </template>
-
-          <div class="line">
-            <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}"></paper-input>
-            <paper-tooltip for="restricted_package_name" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
-          </div>
-
-          <div class="line">
-            <paper-input id="message_id" label="Message ID" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
-            <paper-icon-button icon="icons:autorenew" style="width: 10%;" on-click="newMessageId_" disabled="{{httpSelected}}"></paper-icon-button>
-            <paper-tooltip for="message_id" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
-          </div>
-
-          <div class="priority">
-            <div>Priority:</div><br>
-            <paper-slider id="priority" pin snaps max="10" step="1" value="1"></paper-slider>
-            <paper-tooltip margin-top="0">Sets the priority of the message.</paper-tooltip>
-          </div>
-
-        </section>
+        <options-payload http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}" fields="[[settings.optionsFields_]]"></options-payload>
       </paper-material>
 
       <paper-material elevation="2" id="preview">
         <h3>Request Preview</h3>
-        <request-previewer id="requestPreviewer" http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}"></request-previewer>
+        <request-previewer id="requestPreviewer"
+                           http-selected="{{httpSelected}}"
+                           xmpp-selected="{{xmppSelected}}"
+                           body="">
+        </request-previewer>
+
+        <message-body id="rawMessageBody"
+                      notification="{{notification}}"
+                      options="{{options}}"
+                      data="{{dataPayload}}"
+                      selected-ids="{{selectedIds}}"
+                      custom-ids="{{customIds}}"
+                      selected-protocol="{{selectedProtocol}}"
+                      selected-type="{{selectedType}}">
+        </message-body>
 
         <!-- Send the message -->
         <iron-ajax id="sendMessage"
@@ -220,9 +132,8 @@
                    verbose>
         </iron-ajax>
 
-        <paper-button raised class="primary" id="sendBtn" on-click="send_">
-          <iron-icon icon="check"></iron-icon>
-          Send Message
+        <paper-button class="primary" id="sendBtn" on-click="send_">
+          <iron-icon icon="check"></iron-icon> Send Message
         </paper-button>
       </paper-material>
 
@@ -243,12 +154,6 @@
             value: function() {
               return [];
             }
-          },
-
-          // The message ID for an XMPP message
-          messageId: {
-            type: String,
-            value: ''
           },
 
           // List of custom registration IDs, topic or notification group
@@ -312,7 +217,10 @@
           'protocol-changed': 'protocolChangeHandler',
           'reg-id-changed': 'registrationIdChangeHandler',
           'custom-ids': 'customListHandler',
-          'show-toast': 'showToast_'
+          'show-toast': 'showToast_',
+          'validation-failed': 'showToast_',
+          'notification-changed': 'notificationUpdated_',
+          'options-changed': 'optionsUpdated_',
         },
 
 
@@ -339,6 +247,7 @@
           this.$.recipientsChooser.emptyCustomList_();
 
           this.setState_(selectedType);
+          this.updateMessageBody_();
         },
 
         /**
@@ -347,7 +256,7 @@
         protocolChangeHandler: function(e) {
           this.selectedProtocol = e.detail.choice;
           this.log_("Selected " + this.selectedProtocol);
-          this.$.requestPreviewer.update();
+          this.updateMessageBody_();
         },
 
 
@@ -365,6 +274,7 @@
             this.push('registrationIds', regId);
           }
           this.log_(this.registrationIds);
+          this.updateMessageBody_();
         },
 
 
@@ -374,6 +284,7 @@
         customListHandler: function(e) {
           this.customIds = e.detail.ids;
           this.log_(this.customIds);
+          this.updateMessageBody_();
         },
 
 
@@ -402,17 +313,6 @@
          */
         isProtocol_: function(selectedProtocol, desiredProtocol) {
           return selectedProtocol === desiredProtocol;
-        },
-
-
-        /**
-         * Generate and populate the message ID field with a random one
-         */
-        newMessageId_: function() {
-          // The message ID is not guaranteed to be random.
-          // Ideally, there should be a database of all used IDs to make sure
-          // we don't use and already-used ID.
-          this.messageId = Math.random().toString(36).substr(2, 20);
         },
 
 
@@ -464,7 +364,7 @@
          * Show a new toast with the passed text.
          */
         showToast_: function(text) {
-          if (text.type === 'show-toast') {
+          if (text.detail) {
             text = text.detail;
           }
           this.$.toast.text = text;
@@ -473,82 +373,20 @@
 
 
         /**
-         * Builds, validates and returns the notification payload.
-         * Returns `null` if validation failed.
+         * Fired when the notification payload is updated.
          */
-        getAndValidateNotification_: function() {
-          var notification = {
-            title: this.$$('#notif_title').value,
-            body: this.$$('#notif_body').value,
-            icon: this.$$('#notif_icon').value,
-            sound: this.$$('#notif_sound').value,
-            badge: this.$$('#notif_badge').value,
-            tag: this.$$('#notif_tag').value,
-            color: this.$$('#notif_color').value,
-            click_action: this.$$('#notif_click_action').value,
-            body_loc_key: this.$$('#notif_body_loc_key').value,
-            title_loc_key: this.$$('#notif_title_loc_key').value,
-            title_loc_args: this.$$('#notif_title_loc_args').value,
-            body_loc_args: this.$$('#notif_body_loc_args').value
-          };
-
-          // Validate the syntax of JSON
-          try {
-            if (notification.body_loc_args) { JSON.parse(notification.body_loc_args); }
-          } catch (err) {
-            this.showToast_('Make sure Notification Body Loc Args is valid JSON');
-            return null;
-          }
-          try {
-            if (notification.title_loc_args) { JSON.parse(notification.title_loc_args); }
-          } catch (err) {
-            this.showToast_('Make sure Notification Title Loc Args is valid JSON');
-            return null;
-          }
-
-          return notification;
+        notificationUpdated_: function(e) {
+          this.notification = e.detail;
+          this.updateMessageBody_();
         },
 
 
         /**
-         * Builds, validates and returns the options.
-         * Returns `null` if validation failed.
+         * Fired when the options payload is updated.
          */
-        getAndValidateOptions_: function() {
-          var options = {
-            delivery_receipt_requested: this.$.delivery_receipt_requested.checked,
-            dry_run: this.$$('#dry_run').checked,
-            priority: this.$.priority.value,
-            delay_while_idle: this.$$('#delay_while_idle').checked,
-            content_available: this.$$('#content_available').checked,
-            time_to_live: +this.$$('#time_to_live').value,
-            collapse_key: this.$$('#collapse_key').value,
-            restricted_package_name: this.$.restricted_package_name.value,
-            message_id: this.$.message_id.value
-          };
-
-          // Clean up the fields according to the selected protocol
-          if (this.selectedProtocol === 'http') {
-            options.delivery_receipt_requested = false;
-            options.message_id = '';
-          }
-          if (this.selectedProtocol === 'xmpp') {
-            options.restricted_package_name = '';
-          }
-
-          // Make sure all required fields are present
-          if (this.selectedProtocol === 'xmpp' && options.message_id === '') {
-            this.showToast_('XMPP messages must have a message ID.');
-            return null;
-          }
-
-          // Validate the range of time to live
-          if (isNaN(options.time_to_live) || options.time_to_live > 2419200 || options.time_to_live < 0) {
-            this.showToast_('Time to live should be smaller than 2,419,200 (4 weeks)');
-            return null;
-          }
-
-          return options;
+        optionsUpdated_: function(e) {
+          this.options = e.detail;
+          this.updateMessageBody_();
         },
 
 
@@ -588,58 +426,48 @@
 
 
         /**
-         * Send a message
+         * Builds and validates the request payload.
          */
-        send_: function() {
-          var notification = this.getAndValidateNotification_();
-          if (!notification) return;
+        updateMessageBody_: function() {
+          var notification = this.notification;
+          var options = this.options;
 
-          var options = this.getAndValidateOptions_();
-          if (!options) return;
-
-          var dataPayload = this.$.data.value;
-          var selectedIds = this.$.recipientsChooser.getSelectedIds();
-          var customIds = this.customIds;
+          this.dataPayload = this.$.data.value;
+          this.selectedIds = this.$.recipientsChooser.getSelectedIds();
+          this.customIds = this.customIds;
 
           // Make sure all required fields are present
-          if (selectedIds.length === 0 && customIds.length === 0) {
+          if (this.selectedIds.length === 0 && this.customIds.length === 0) {
             this.showToast_('Select at least one recipient.');
             return;
           }
-          if (!this.validateByMessageType(this.customIds, selectedIds)) return;
+          if (!this.validateByMessageType(this.customIds, this.selectedIds)) return;
 
           // Validate JSON
           try {
-            if (dataPayload) { dataPayload = JSON.parse(dataPayload); }
+            if (this.dataPayload) { this.dataPayload = JSON.parse(this.dataPayload); }
           } catch (err) {
             this.showToast_('Make sure the data payload is valid JSON');
             return;
           }
 
-          this.messageBody = {
-            message: {
-              notification: notification
-            },
-            protocol: this.selectedProtocol
-          };
-          // Merge options in top level of message JSON body
-          for (var attrname in options) {
-            this.messageBody[attrname] = options[attrname];
-          }
+          // Update the body of the send message POST request
+          this.messageBody = this.$.rawMessageBody.update();
+          // Update the preview body
+          this.$.requestPreviewer.body = this.$.rawMessageBody.getMessagePreview();
+        },
 
-          if (dataPayload && Object.keys(dataPayload).length > 0) {
-            this.messageBody.message.data = dataPayload;
-          }
 
-          if (this.selectedType === 'unicast') {
-            var allTargets = selectedIds.concat(customIds);
-            this.messageBody.message.to = allTargets[0];
-          } else if (this.selectedType === 'pubsub' || this.selectedType === 'notification_group') {
-            this.messageBody.message.to = customIds[0];
-          } else {
-            var registrationIds = selectedIds;
-            registrationIds.push.apply(registrationIds, customIds);
-            this.messageBody.message.registration_ids = registrationIds
+        /**
+         * Send a message
+         */
+        send_: function() {
+          this.updateMessageBody_();
+
+          // Make sure all required fields are present
+          if (this.selectedProtocol === 'xmpp' && this.options.message_id === '') {
+            this.showToast_('XMPP messages must have a message ID.');
+            return null;
           }
 
           this.$.sendBtn.disabled = true;
@@ -647,7 +475,7 @@
           this.messageBody = JSON.stringify(this.messageBody);
           this.$.sendMessage.generateRequest();
 
-          this.showToast_('Sending message ID: ' + options.message_id);
+          this.showToast_('Sending message');
         },
 
 
@@ -660,8 +488,6 @@
           // How many total IDs can the user select?
           // -1 = multicast
           this.regIdLimit_ = 1;
-
-          this.newMessageId_();
         }
       });
     })();

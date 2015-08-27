@@ -1,0 +1,84 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="upstream-message">
+
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <template>
+    <iron-collapse id="message">
+      <paper-material elevation="2">
+        <p>New message received at <span>{{now_()}}</span></p>
+
+        <textarea cols="120" rows="15">{{body}}</textarea>
+      </paper-material>
+    </iron-collapse>
+
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'upstream-message',
+
+
+        properties: {
+
+          body: {
+            type: String
+          }
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('upstream-message', msg);
+        },
+
+
+        /**
+         * Returns current timestamp as a string.
+         */
+        now_: function() {
+          console.log((new Date()).toString());
+          return (new Date()).toString();
+        },
+
+
+        /********************************************
+         * LIFECYCLE FUNCTIONS
+         ********************************************/
+
+        attached: function() {
+          this.$.message.opened = true;
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>

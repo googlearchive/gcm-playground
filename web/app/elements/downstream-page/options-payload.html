@@ -1,0 +1,217 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+
+
+<dom-module id="options-payload">
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    section {
+      padding: 20px;
+    }
+
+    section h4 {
+      margin-bottom: 30px;
+    }
+    .line {
+      width: 47%;
+      display: inline-block;
+    }
+    .line paper-input, .line paper-textarea {
+      width: 70%;
+      margin-left: 10px;
+      display: inline-block;
+    }
+    .line {
+      margin-bottom: 20px;
+    }
+
+    .line span {
+      margin-left: 24px;
+    }
+  </style>
+
+  <template>
+    <section>
+      <h4>Other Options</h4>
+
+      <div class="line">
+        <paper-toggle-button id="delivery_receipt_requested" disabled="{{httpSelected}}" on-change="validate_"></paper-toggle-button>
+        <span>Delivery Receipt Requested</span>
+        <paper-tooltip margin-top="0">This parameter lets the app server request confirmation of message delivery.</paper-tooltip>
+      </div>
+      <template is="dom-repeat" items="{{fields}}" as="field">
+        <div class="line">
+          <template is="dom-if" if="{{!field.input}}">
+            <paper-toggle-button id="{{field.id}}" on-change="validate_"></paper-toggle-button>
+            <span>{{field.label}}</span>
+          </template>
+          <template is="dom-if" if="{{field.input}}">
+            <paper-input label="{{field.label}}" id="{{field.id}}" on-change="validate_"></paper-input>
+          </template>
+          <paper-tooltip margin-top="0">{{field.tooltip}}</paper-tooltip>
+        </div>
+      </template>
+
+      <div class="line">
+        <paper-input id="restricted_package_name" label="Restricted Package Name" disabled="{{xmppSelected}}" on-change="validate_"></paper-input>
+        <paper-tooltip for="restricted_package_name" margin-top="0">The package name of the application where the registration tokens must match in order to receive the message.</paper-tooltip>
+      </div>
+
+      <div class="line">
+        <paper-input id="message_id" label="Message ID" on-change="validate_" disabled="{{httpSelected}}" value="{{messageId}}" bind-value="{{messageId}}" style="width: 60%;"></paper-input>
+        <paper-icon-button icon="icons:autorenew" style="width: 10%;" on-click="newMessageId_" disabled="{{httpSelected}}"></paper-icon-button>
+        <paper-tooltip for="message_id" margin-top="0">This parameter uniquely identifies a message in an XMPP connection.</paper-tooltip>
+      </div>
+
+      <div class="priority">
+        <b>Priority:</b>
+        <paper-radio-group id="priority" selected="normal" on-change="priorityChangeHandler">
+          <paper-radio-button name="normal" id="normal">Normal</paper-radio-button>
+          <paper-radio-button name="high" id="high">High</paper-radio-button>
+
+          <paper-tooltip margin-top="0">Sets the priority of the message.</paper-tooltip>
+        </paper-radio-group>
+      </div>
+
+    </section>
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'options-payload',
+
+
+        properties: {
+
+          xmppSelected: {
+            type: Boolean
+          },
+
+          httpSelected: {
+            type: Boolean
+          },
+
+          fields: {
+            type: Array,
+            value: function() { return []; }
+          },
+
+          // The message ID for an XMPP message
+          messageId: {
+            type: String,
+            value: ''
+          },
+
+          options: {
+            type: Object,
+            value: function() { return {}; },
+            notify: true
+          }
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('options-payload', msg);
+        },
+
+
+        /**
+         * Generate and populate the message ID field with a random one
+         */
+        newMessageId_: function() {
+          // The message ID is not guaranteed to be random.
+          // Ideally, there should be a database of all used IDs to make sure
+          // we don't use and already-used ID.
+          this.messageId = Math.random().toString(36).substr(2, 20);
+        },
+
+
+
+        priorityChangeHandler: function(e) {
+          this.priority = e.target.attributes.name.value;
+          this.validate_();
+        },
+
+
+        /**
+         * Builds, validates the notification payload.
+         * Returns `null` if validation failed.
+         */
+        validate_: function() {
+          this.log_("Options validating.");
+
+          this.options = {
+            delivery_receipt_requested: this.$.delivery_receipt_requested.checked,
+            dry_run: this.$$('#dry_run').checked,
+            priority: this.priority,
+            delay_while_idle: this.$$('#delay_while_idle').checked,
+            content_available: this.$$('#content_available').checked,
+            time_to_live: +this.$$('#time_to_live').value,
+            collapse_key: this.$$('#collapse_key').value,
+            restricted_package_name: this.$.restricted_package_name.value,
+            message_id: this.$.message_id.value
+          };
+
+          // Clean up the fields according to the selected protocol
+          if (this.selectedProtocol === 'http') {
+            this.options.delivery_receipt_requested = false;
+            this.options.message_id = '';
+          }
+          if (this.selectedProtocol === 'xmpp') {
+            this.options.restricted_package_name = '';
+          }
+
+          // Validate the range of time to live
+          if (isNaN(this.options.time_to_live) || this.options.time_to_live > 2419200 || this.options.time_to_live < 0) {
+            this.fire('validation-failed', 'Time to live should be smaller than 2,419,200 (4 weeks)');
+            return null;
+          }
+
+          this.fire('options-changed', this.options);
+        },
+
+
+        /********************************************
+         * LIFECYCLE FUNCTIONS
+         ********************************************/
+
+        attached: function() {
+          this.newMessageId_();
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>

@@ -29,9 +29,9 @@
 
   <template>
     <paper-radio-group on-change="messageTypeChangeHandler">
-      <paper-radio-button name="unicast" id="unicast">Unicast</paper-radio-button>
+      <paper-radio-button name="unicast" id="unicast">Single Device</paper-radio-button>
       <paper-radio-button name="multicast" id="multicast">Multicast</paper-radio-button>
-      <paper-radio-button name="pubsub" id="pubsub">Pubsub</paper-radio-button>
+      <paper-radio-button name="pubsub" id="pubsub">Topic Messaging</paper-radio-button>
       <paper-radio-button name="notification_group" id="notification_group">Notification Group</paper-radio-button>
 
       <paper-tooltip for="unicast" margin-top="-10">Single recipient, HTTP or XMPP</paper-tooltip>

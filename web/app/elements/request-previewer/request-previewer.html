@@ -18,7 +18,6 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
-
 <dom-module id="request-previewer">
 
   <style>
@@ -29,25 +28,27 @@
 
   <template>
     <iron-collapse id="httpPreview">
-      <paper-item>Request URL: <code>https://gcm-http.googleapis.com/gcm/send</code></paper-item>
+      <p>Request URL: <code>https://gcm-http.googleapis.com/gcm/send</code></p>
+      <p>Request Method: <code>POST</code></p>
       <section>
         <h4>Request Headers</h4>
-        <paper-item>Content-Type: application/json</paper-item>
-        <paper-item>Authorization: key=YOUR_API_KEY</paper-item>
+        <p>Content-Type: <code>application/json</code></p>
+        <p>Authorization: <code>key=YOUR_API_KEY</code>
       </section>
 
       <section>
         <h4>Request Body</h4>
-        <paper-textarea label="" value="{{requestOutput_}}"></paper-textarea>
+        <paper-textarea value="{{body}}"></paper-textarea>
       </section>
     </iron-collapse>
 
     <iron-collapse id="xmppPreview">
       <section>
         <h4>XMPP stanza</h4>
-        <paper-textarea label="Request Body" value="{{requestOutput_}}"></paper-textarea>
+        <paper-textarea value="{{body}}"></paper-textarea>
       </section>
     </iron-collapse>
+
   </template>
 
   <script>
@@ -68,7 +69,13 @@
           xmppSelected: {
             type: Boolean,
             value: false
-          }
+          },
+
+          body: {
+            type: String,
+            value: "",
+            observer: 'update_'
+          },
 
         },
 
@@ -82,37 +89,18 @@
         /**
          * Update the state of the element.
          */
-        update: function() {
+        update_: function() {
           this.log_("Updating");
-
           if (this.httpSelected) {
-            this.requestOutput_ = JSON.stringify({ "collapse_key": "score_update",
-                "time_to_live": 108,
-                "delay_while_idle": true,
-                "data": {
-                  "score": "4x8",
-                  "time": "15:16.2342"
-                },
-                "to" : "APA91bHun4MxP5egoKMwt2KZFBaFUH-1RYqx..."
-              });
-
+            // HTTP message preview
             this.$.httpPreview.opened = true;
             this.$.xmppPreview.opened = false;
-          } else {
-            this.requestOutput_ = '<message id="">\n' +
-                '<gcm xmlns="google:mobile:data">\n' +
-                '{\n' +
-                '    "to":"REGISTRATION_ID",  // "to" replaces "registration_ids"\n' +
-                '    "notification": {\n' +
-                '      "title": "Portugal vs. Denmark”,\n' +
-                '      "text”: "5 to 1”\n' +
-                '    },\n' +
-                '    "time_to_live":"600"\n' +
-                '}\n' +
-                '</gcm>\n' +
-              '</message>';
-
+          } else if (this.xmppSelected) {
+            // XMPP message preview
             this.$.xmppPreview.opened = true;
+            this.$.httpPreview.opened = false;
+          } else {
+            this.$.xmppPreview.opened = false;
             this.$.httpPreview.opened = false;
           }
         }

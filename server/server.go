@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/google/go-gcm"
+	"github.com/googollee/go-socket.io"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
@@ -61,6 +62,9 @@ var (
 
 	// Current database connection
 	db gorm.DB
+
+	// Websocket connection
+	socket socketio.Socket
 )
 
 type Client struct {
@@ -207,6 +211,10 @@ func SendClientStatus(token string, d gcm.Data) error {
 func onMessageReceived(cm gcm.CcsMessage) error {
 	log.Printf("Received Message: %+v", cm)
 
+	if socket != nil {
+		log.Println("emit:", socket.Emit("upstream message", cm))
+	}
+
 	d := cm.Data
 
 	switch d[actionKey] {
@@ -257,6 +265,17 @@ func onMessageReceived(cm gcm.CcsMessage) error {
 func Handler() http.Handler {
 	router := mux.NewRouter()
 
+	// Set up the websocket server
+	wsServer, err := socketio.NewServer(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	wsServer.On("connection", func(so socketio.Socket) {
+		log.Println("on connection")
+		socket = so
+	})
+	router.Handle("/socket.io/", wsServer)
+
 	// GET /clients
 	// List all registered registration IDs
 	router.HandleFunc("/clients", ListClients).Methods("GET")
@@ -265,7 +284,10 @@ func Handler() http.Handler {
 	// Send a new message
 	router.HandleFunc("/message", SendMessage).Methods("POST")
 
-	return cors.Default().Handler(router)
+	c := cors.New(cors.Options{
+		AllowCredentials: true,
+	})
+	return c.Handler(router)
 }
 
 func main() {
