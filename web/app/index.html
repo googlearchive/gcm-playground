@@ -59,7 +59,7 @@
       <paper-tabs selected="{{route}}">
 
         <paper-tab link>
-          <a class="horizontal center-center layout" data-route="home" href="/">Home</a>
+          <a class="horizontal center-center layout" data-route="home" href="/">Settings</a>
         </paper-tab>
 
         <paper-tab link>
@@ -76,26 +76,25 @@
 
     <iron-pages attr-for-selected="data-route" selected="{{route}}">
 
+      <!-- Get form settings -->
+      <iron-ajax auto
+                 url="/settings.json"
+                 handleAs="json"
+                 last-response="{{settings}}"
+                 method='GET'>
+      </iron-ajax>
+
       <section data-route="home">
         <h2>Homepage</h2>
       </section>
 
       <section main data-route="downstream">
-        <downstream-page></downstream-page>
+        <downstream-page settings="[[settings]]"></downstream-page>
       </section>
 
-      <section main data-route="upstream" id="upstream">
+      <section main data-route="upstream">
+        <upstream-page settings="[[settings]]"></upstream-page>
       </section>
-
-      <script type="text/javascript">
-        var socket = io('http://localhost:4260/');
-        socket.on('upstream message', function(msg){
-          messages = document.getElementById("upstream");
-          var messageEl = document.createElement("upstream-message");
-          messageEl.setAttribute('body', JSON.stringify(msg, null, 4))
-          messages.insertBefore(messageEl, messages.firstChild);
-        });
-      </script>
 
     </iron-pages>
 

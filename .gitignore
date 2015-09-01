@@ -132,3 +132,4 @@ DerivedData
 *.xcuserstate
 
 Pods/
+id_rsa

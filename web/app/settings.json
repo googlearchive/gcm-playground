@@ -1,6 +1,8 @@
 {
   "main": {
-    "sendMessageEndpoint": "http://localhost:4260/message"
+    "sendMessageEndpoint": "http://localhost:4260/message",
+    "clientsEndpoint": "http://localhost:4260/clients",
+    "socketEndpoint": "http://localhost:4260/"
   },
   "notificationFields_": [
     {

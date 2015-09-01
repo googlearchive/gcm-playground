@@ -48,7 +48,7 @@
 
   <template>
     <iron-ajax auto
-               url="http://localhost:4260/clients"
+               url="{{url}}"
                handleAs="json"
                last-response="{{recipients}}"
                method='GET'>
@@ -84,6 +84,10 @@
 
 
         properties: {
+
+          url: {
+            type: String
+          },
 
           limit: {
             type: Number,

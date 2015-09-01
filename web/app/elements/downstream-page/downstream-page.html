@@ -54,8 +54,6 @@
     }
     #preview paper-button {
       width: 250px;
-      /*background-color: var(--default-primary-color);
-      color: #fff;*/
     }
     #preview paper-button[disabled] {
       color: var(--disabled-text-color) !important;
@@ -78,19 +76,11 @@
 
       <paper-material elevation="2">
         <h3>Step 3: Select Targets</h3>
-        <recipients-chooser id="recipientsChooser" limit="{{regIdLimit_}}" registration-ids-length$="{{registrationIds.length}}"></recipients-chooser>
+        <recipients-chooser id="recipientsChooser" limit="{{regIdLimit_}}" registration-ids-length$="{{registrationIds.length}}" url="[[settings.main.clientsEndpoint]]"></recipients-chooser>
       </paper-material>
 
       <paper-material elevation="2" id="parameters">
         <h3>Step 4: Set Options</h3>
-
-        <!-- Get form settings -->
-        <iron-ajax auto
-                   url="/settings.json"
-                   handleAs="json"
-                   last-response="{{settings}}"
-                   method='GET'>
-        </iron-ajax>
 
         <notification-payload fields="[[settings.notificationFields_]]"></notification-payload>
 
@@ -147,6 +137,9 @@
 
 
         properties: {
+
+          // Shared settings
+          settings: Object,
 
           // This list of selected registration IDs
           registrationIds: {

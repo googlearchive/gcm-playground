@@ -29,10 +29,18 @@ RUN apt-get update && apt-get install -y build-essential
 RUN go get -u github.com/gorilla/mux
 RUN go get -u github.com/jinzhu/gorm
 RUN go get -u github.com/mattn/go-sqlite3
-RUN go get -u github.com/google/go-gcm
 RUN go get -u github.com/googollee/go-socket.io
 RUN go get -u github.com/rs/cors
-
+# Until go-gcm is public, use this
+# Remove these lines when go-gcm is public.
+RUN mkdir /root/.ssh/
+ADD id_rsa /root/.ssh/id_rsa
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+RUN echo "Host github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
+RUN git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+# Remove until here
+RUN go get -u github.com/google/go-gcm
 
 # -----------------
 # Copy files over
