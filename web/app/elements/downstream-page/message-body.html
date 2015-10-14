@@ -1,0 +1,181 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+
+
+<dom-module id="message-body">
+
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <template></template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'message-body',
+
+
+        properties: {
+
+          notification: {
+            type: Object
+          },
+
+          options: {
+            type: Object
+          },
+
+          data: {
+            type: Object
+          },
+
+          selectedIds: {
+            type: Array
+          },
+
+          customIds: {
+            type: Array
+          },
+
+          selectedProtocol: {
+            type: String
+          },
+
+          selectedType: {
+            type: String
+          }
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('message-body', msg);
+        },
+
+
+        /**
+         * Updates the message body.
+         */
+        update: function() {
+          this.messageBody = {
+            message: {
+              notification: this.notification
+            },
+            protocol: this.selectedProtocol
+          };
+
+          // Merge options in top level of message JSON body
+          for (var attrname in this.options) {
+            this.messageBody[attrname] = this.options[attrname];
+          }
+
+          if (this.data && Object.keys(this.data).length > 0) {
+            this.messageBody.message.data = this.data;
+          }
+
+          if (this.selectedType === 'unicast') {
+            var allTargets = this.selectedIds.concat(this.customIds);
+            this.messageBody.message.to = allTargets[0];
+          } else if (this.selectedType === 'pubsub' || this.selectedType === 'notification_group') {
+            this.messageBody.message.to = this.customIds[0];
+          } else {
+            var registrationIds = this.selectedIds;
+            registrationIds.push.apply(registrationIds, this.customIds);
+            this.messageBody.message.registration_ids = registrationIds;
+          }
+
+          return this.messageBody;
+        },
+
+
+        /**
+         * Returns a mutated copy of message body for previewing the request
+         * payload as a string.
+         */
+        getMessagePreview: function() {
+          // We maintain a separate "clone" here to not mess with the original
+          // message body.
+          var tempMessageBody = JSON.parse(JSON.stringify(this.messageBody));
+
+          if (Object.keys(tempMessageBody).length > 0) {
+            // Move `message` keys into top-level JSON.
+            for (var key in tempMessageBody.message) {
+              if (tempMessageBody.message[key]) {
+                tempMessageBody[key] = tempMessageBody.message[key];
+              }
+            }
+            delete tempMessageBody.message;
+
+            delete tempMessageBody.protocol;
+
+            // Clear empty notification
+            for (key in tempMessageBody.notification) {
+              if (!tempMessageBody.notification[key]) {
+                delete tempMessageBody.notification[key];
+              }
+            }
+            if (tempMessageBody.notification &&
+                !Object.keys(tempMessageBody.notification).length) {
+              delete tempMessageBody.notification;
+            }
+          }
+
+          // Remove empty values
+          for (var k in tempMessageBody) {
+            if (!tempMessageBody[k]) {
+              delete tempMessageBody[k];
+            }
+          }
+
+          var requestOutput;
+          if (this.selectedProtocol === "http") {
+            // HTTP message preview
+
+            // Remove keys we don't need
+            delete tempMessageBody.message_id;
+
+            requestOutput = JSON.stringify(tempMessageBody, null, 4);
+          } else {
+            // XMPP message preview
+            requestOutput = '<message id="' + tempMessageBody.message_id + '">\n' +
+                '    <gcm xmlns="google:mobile:data">\n' +
+                '       ' + JSON.stringify(tempMessageBody, null, 4) +
+                '\n    </gcm>\n' +
+              '</message>';
+          }
+
+          return requestOutput;
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>

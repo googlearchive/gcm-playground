@@ -1,0 +1,22 @@
+{
+  "name": "GCM Playground Receiver",
+  "version": "0.0.1",
+  "description": "GCM Playground Receiver",
+  "manifest_version": 2,
+  "permissions": [
+    "gcm",
+    "storage",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "icons": {
+    "16": "icon_16.png",
+    "32": "icon_32.png",
+    "128": "icon_128.png"
+  },
+  "app": {
+    "background": {
+      "scripts": [ "background.js" ]
+    }
+  }
+}

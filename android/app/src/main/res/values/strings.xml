@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">GCM Playground</string>
+
+    <string name="sender_id_label">Sender ID</string>
+    <string name="app_server_host_label">App Server Host</string>
+    <string name="default_app_server_host">localhost:4260</string>
+    <string name="string_identifier_label">Client Identifier (Optional)</string>
+    <string name="button_register">Register</string>
+    <string name="button_unregister">Unregister</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="upstream_message_label">Message text</string>
+    <string name="button_send">Send</string>
+
+    <string name="pubsub_topic_label">/topics/myTopic</string>
+    <string name="button_subscribe">Subscribe</string>
+
+</resources>

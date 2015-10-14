@@ -1,0 +1,489 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="../message-type-chooser/message-type-chooser.html">
+<link rel="import" href="../protocol-chooser/protocol-chooser.html">
+<link rel="import" href="../recipients-chooser/recipients-chooser.html">
+<link rel="import" href="../request-previewer/request-previewer.html">
+<link rel="import" href="notification-payload.html">
+<link rel="import" href="options-payload.html">
+<link rel="import" href="message-body.html">
+
+
+<dom-module id="downstream-page">
+
+  <style>
+    :host {
+      display: block;
+    }
+    paper-material {
+      @apply(--layout-vertical);
+      border-radius: 2px;
+      height: 100%;
+      padding: 30px;
+      margin: 16px auto;
+      background: white;
+    }
+    #parameters {
+      display: block;
+    }
+    #parameters section, #preview section {
+      padding: 20px;
+    }
+    #parameters section h4, #preview section h4 {
+      margin-bottom: 30px;
+    }
+    #preview paper-button {
+      width: 250px;
+    }
+    #preview paper-button[disabled] {
+      color: var(--disabled-text-color) !important;
+      background: var(--paper-fab-disabled-background) !important;
+    }
+
+  </style>
+  <template>
+     <h2>Send Downstream Message</h2>
+
+      <paper-material elevation="2">
+        <h3>Step 1: Type of Message</h3>
+        <message-type-chooser></message-type-chooser>
+      </paper-material>
+
+      <paper-material elevation="2">
+        <h3>Step 2: Select Protocol</h3>
+        <protocol-chooser id="protocolChooser" disable-http="{{disableHttp}}" disable-xmpp="{{disableXmpp}}"></protocol-chooser>
+      </paper-material>
+
+      <paper-material elevation="2">
+        <h3>Step 3: Select Targets</h3>
+        <recipients-chooser id="recipientsChooser" limit="{{regIdLimit_}}" registration-ids-length$="{{registrationIds.length}}" url="[[settings.main.clientsEndpoint]]"></recipients-chooser>
+      </paper-material>
+
+      <paper-material elevation="2" id="parameters">
+        <h3>Step 4: Set Options</h3>
+
+        <notification-payload fields="[[settings.notificationFields_]]"></notification-payload>
+
+        <section>
+          <h4>Data Payload</h4>
+          <p><a href="https://developers.google.com/cloud-messaging/server-ref#send-downstream">Learn more about it</a></p>
+          <paper-textarea id="data" label="JSON" on-change="updateMessageBody_"></paper-textarea>
+        </section>
+
+        <options-payload http-selected="{{httpSelected}}" xmpp-selected="{{xmppSelected}}" fields="[[settings.optionsFields_]]"></options-payload>
+      </paper-material>
+
+      <paper-material elevation="2" id="preview">
+        <h3>Request Preview</h3>
+        <request-previewer id="requestPreviewer"
+                           http-selected="{{httpSelected}}"
+                           xmpp-selected="{{xmppSelected}}"
+                           body="">
+        </request-previewer>
+
+        <message-body id="rawMessageBody"
+                      notification="{{notification}}"
+                      options="{{options}}"
+                      data="{{dataPayload}}"
+                      selected-ids="{{selectedIds}}"
+                      custom-ids="{{customIds}}"
+                      selected-protocol="{{selectedProtocol}}"
+                      selected-type="{{selectedType}}">
+        </message-body>
+
+        <!-- Send the message -->
+        <iron-ajax id="sendMessage"
+                   url="[[settings.main.sendMessageEndpoint]]"
+                   body="{{messageBody}}"
+                   content-type="application/json"
+                   handle-as="json"
+                   on-response="messageSentHandler"
+                   method="POST"
+                   verbose>
+        </iron-ajax>
+
+        <paper-button class="primary" id="sendBtn" on-click="send_">
+          <iron-icon icon="check"></iron-icon> Send Message
+        </paper-button>
+      </paper-material>
+
+      <paper-toast id="toast" text="" visible="false"></paper-toast>
+  </template>
+
+  <script>
+    (function () {
+      Polymer({
+        is: 'downstream-page',
+
+
+        properties: {
+
+          // Shared settings
+          settings: Object,
+
+          // This list of selected registration IDs
+          registrationIds: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          // List of custom registration IDs, topic or notification group
+          // For topic or notification group, length === 1
+          customIds: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          // The type of message user has decided to send
+          selectedType: {
+            type: String,
+            value: ''
+          },
+
+          toast: {
+            text: String,
+            visible: Boolean,
+            value: function() {
+              return { text: '', visible: false };
+            }
+          },
+
+          // The protocol that is selected right now
+          selectedProtocol: {
+            type: String,
+            value: ''
+          },
+
+          // True if the selected protocol is XMPP
+          xmppSelected: {
+            type: Boolean,
+            computed: 'isProtocol_(selectedProtocol, "xmpp")'
+          },
+
+          // True if the selected protocol is HTTP
+          httpSelected: {
+            type: Boolean,
+            computed: 'isProtocol_(selectedProtocol, "http")'
+          },
+
+          // Should HTTP be disabled?
+          disableHttp: {
+            type: Boolean,
+            value: false
+          },
+
+          // Should XMPP be disabled?
+          disableXmpp: {
+            type: Boolean,
+            value: false
+          },
+
+        },
+
+
+        listeners: {
+          'message-type-changed': 'messageTypeChangeHandler',
+          'protocol-changed': 'protocolChangeHandler',
+          'reg-id-changed': 'registrationIdChangeHandler',
+          'custom-ids': 'customListHandler',
+          'show-toast': 'showToast_',
+          'validation-failed': 'showToast_',
+          'notification-changed': 'notificationUpdated_',
+          'options-changed': 'optionsUpdated_',
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('downstream-page', msg);
+        },
+
+
+        /********************************************
+         * EVENT HANDLERS
+         ********************************************/
+
+        /**
+         * Handles the selection of the downstream message type.
+         */
+        messageTypeChangeHandler: function(e) {
+          var selectedType = e.detail.choice;
+
+          this.log_("Selected " + selectedType);
+
+          this.$.protocolChooser.reset();
+          this.$.recipientsChooser.deselectAllRegIds_();
+          this.$.recipientsChooser.emptyCustomList_();
+
+          this.setState_(selectedType);
+          this.updateMessageBody_();
+        },
+
+        /**
+         * Handles the selection of the downstream message protocol.
+         */
+        protocolChangeHandler: function(e) {
+          this.selectedProtocol = e.detail.choice;
+          this.log_("Selected " + this.selectedProtocol);
+          this.updateMessageBody_();
+        },
+
+
+        /**
+         * Handles the selection of registration ids.
+         */
+        registrationIdChangeHandler: function(e) {
+          var action = e.detail.action;
+          var regId = e.detail.regId;
+
+          if (action === 'remove') {
+            this.splice('registrationIds',
+                this.registrationIds.indexOf(regId), 1);
+          } else if (action === 'add') {
+            this.push('registrationIds', regId);
+          }
+          this.log_(this.registrationIds);
+          this.updateMessageBody_();
+        },
+
+
+        /**
+         * Handles input in the custom reg ID input field.
+         */
+        customListHandler: function(e) {
+          this.customIds = e.detail.ids;
+          this.log_(this.customIds);
+          this.updateMessageBody_();
+        },
+
+
+        /**
+         * Handls the response from message sending call.
+         */
+        messageSentHandler: function(e) {
+          var status = e.detail.status;
+          if (status === 200) {
+            this.showToast_('Message sent!');
+          } else if (status === 404) {
+            this.showToast_('Message sending failed. Is your server running?');
+          } else {
+            this.showToast_('Message sending failed.');
+          }
+          this.$.sendBtn.disabled = false;
+        },
+
+
+        /********************************************
+         * PRIVATE FUNCTIONS
+         ********************************************/
+
+        /**
+         * Returns true iff selectedProtocol is the same as the desiredProtocol.
+         */
+        isProtocol_: function(selectedProtocol, desiredProtocol) {
+          return selectedProtocol === desiredProtocol;
+        },
+
+
+        /**
+         * Sets the state of the application based on the passed message type.
+         */
+        setState_: function(selectedType) {
+          this.registrationIds = [];
+          this.selectedType = selectedType;
+
+          switch (selectedType) {
+            case 'unicast':
+              this.disableXmpp = false;
+              this.regIdLimit_ = 1;
+              this.$.recipientsChooser.enableAllRegIds_();
+              this.setCustomListLabel_('Or, paste one registration ID');
+              break;
+            case 'multicast':
+              this.disableXmpp = true;
+              this.regIdLimit_ = -1;
+              this.$.recipientsChooser.enableAllRegIds_();
+              this.setCustomListLabel_('Paste more registration IDs');
+              break;
+            case 'pubsub':
+              this.disableXmpp = false;
+              this.regIdLimit_ = 0;
+              this.$.recipientsChooser.disableAllRegIds_();
+              this.setCustomListLabel_('Paste a topic. eg. /topics/myTopic');
+              break;
+            case 'notification_group':
+              this.disableXmpp = false;
+              this.regIdLimit_ = 0;
+              this.$.recipientsChooser.disableAllRegIds_();
+              this.setCustomListLabel_('Paste a notification group key');
+              break;
+          }
+        },
+
+
+        /**
+         * Sets the label of the textarea in recipients card.
+         */
+        setCustomListLabel_: function(text) {
+          this.$.recipientsChooser.setCustomListLabel_(text);
+        },
+
+
+        /**
+         * Show a new toast with the passed text.
+         */
+        showToast_: function(text) {
+          if (text.detail) {
+            text = text.detail;
+          }
+          this.$.toast.text = text;
+          this.$.toast.show();
+        },
+
+
+        /**
+         * Fired when the notification payload is updated.
+         */
+        notificationUpdated_: function(e) {
+          this.notification = e.detail;
+          this.updateMessageBody_();
+        },
+
+
+        /**
+         * Fired when the options payload is updated.
+         */
+        optionsUpdated_: function(e) {
+          this.options = e.detail;
+          this.updateMessageBody_();
+        },
+
+
+        /**
+         * Validates the selections and recipients by message type.
+         * Returns `false` if validation failed, `true` otherwise.
+         */
+        validateByMessageType: function(customIds, selectedIds) {
+          // Validate unicast message
+          if (this.selectedType === 'unicast') {
+            if (customIds.length + selectedIds.length !== 1) {
+              this.showToast_('You can only send message to one recipient at a time.');
+              return false;
+            }
+          }
+          // Validate topic for pubsub messages
+          if (this.selectedType === 'pubsub') {
+            if (customIds.length !== 1) {
+              this.showToast_('You can only send message to one topic at a time.');
+              return false;
+            }
+            if (!customIds[0].startsWith('/topics/')) {
+              this.showToast_('Your topic is not correct. Make sure it\'s of the format "/topics/<mytopic>"');
+              return false;
+            }
+          }
+          // Validate notification group
+          if (this.selectedType === 'notification_group') {
+            if (customIds.length !== 1) {
+              this.showToast_('You can only send message to one notification group at a time.');
+              return false;
+            }
+          }
+
+          return true;
+        },
+
+
+        /**
+         * Builds and validates the request payload.
+         */
+        updateMessageBody_: function() {
+          var notification = this.notification;
+          var options = this.options;
+
+          this.dataPayload = this.$.data.value;
+          this.selectedIds = this.$.recipientsChooser.getSelectedIds();
+          this.customIds = this.customIds;
+
+          // Make sure all required fields are present
+          if (this.selectedIds.length === 0 && this.customIds.length === 0) {
+            this.showToast_('Select at least one recipient.');
+            return;
+          }
+          if (!this.validateByMessageType(this.customIds, this.selectedIds)) return;
+
+          // Validate JSON
+          try {
+            if (this.dataPayload) { this.dataPayload = JSON.parse(this.dataPayload); }
+          } catch (err) {
+            this.showToast_('Make sure the data payload is valid JSON');
+            return;
+          }
+
+          // Update the body of the send message POST request
+          this.messageBody = this.$.rawMessageBody.update();
+          // Update the preview body
+          this.$.requestPreviewer.body = this.$.rawMessageBody.getMessagePreview();
+        },
+
+
+        /**
+         * Send a message
+         */
+        send_: function() {
+          this.updateMessageBody_();
+
+          // Make sure all required fields are present
+          if (this.selectedProtocol === 'xmpp' && this.options.message_id === '') {
+            this.showToast_('XMPP messages must have a message ID.');
+            return null;
+          }
+
+          this.$.sendBtn.disabled = true;
+
+          this.messageBody = JSON.stringify(this.messageBody);
+          this.$.sendMessage.generateRequest();
+
+          this.showToast_('Sending message');
+        },
+
+
+        /********************************************
+         * LIFECYCLE FUNCTIONS
+         ********************************************/
+
+
+        attached: function() {
+          // How many total IDs can the user select?
+          // -1 = multicast
+          this.regIdLimit_ = 1;
+        }
+      });
+    })();
+  </script>
+
+</dom-module>

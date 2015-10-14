@@ -1,0 +1,159 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+
+<dom-module id="notification-payload">
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    section {
+      padding: 20px;
+    }
+
+    section h4 {
+      margin-bottom: 30px;
+    }
+
+    .notif_line {
+      width: 47%;
+      display: inline-block;
+    }
+
+    .notif_line:nth-child(odd) {
+      margin-left: 10px;
+    }
+
+    .notif_line paper-input, .notif_line paper-textarea {
+      width: 70%;
+      margin-left: 10px;
+      display: inline-block;
+    }
+  </style>
+
+  <template>
+    <section>
+      <h4>Notification Payload</h4>
+
+      <template is="dom-repeat" items="{{fields}}" as="field">
+        <div class="notif_line">
+          <template is="dom-if" if="{{field.android}}">
+            <iron-icon icon="icons:android"></iron-icon>
+          </template>
+          <template is="dom-if" if="{{!field.android}}">
+            <iron-icon icon="icons:d"></iron-icon>
+          </template>
+          <template is="dom-if" if="{{field.ios}}">
+            <iron-icon src="/images/ios.svg"></iron-icon>
+          </template>
+          <template is="dom-if" if="{{!field.ios}}">
+            <iron-icon icon="icons:d"></iron-icon>
+          </template>
+          <template is="dom-if" if="{{!field.textarea}}">
+            <paper-input id="{{field.id}}" label="{{field.label}}" on-change="validate_"></paper-input>
+          </template>
+          <template is="dom-if" if="{{field.textarea}}">
+            <paper-textarea id="{{field.id}}" label="{{field.label}}" on-change="validate_"></paper-textarea>
+          </template>
+          <paper-tooltip margin-top="-5">{{field.tooltip}}</paper-tooltip>
+        </div>
+      </template>
+    </section>
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'notification-payload',
+
+
+        properties: {
+
+          fields: {
+            type: Array,
+            value: function() { return []; }
+          },
+
+          notification: {
+            type: Object,
+            value: function() { return {}; },
+            notify: true
+          }
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('notification-payload', msg);
+        },
+
+
+        /**
+         * Builds, validates the notification payload.
+         * Returns `null` if validation failed.
+         */
+        validate_: function() {
+          this.log_("Notification validating.");
+          this.notification = {
+            title: this.$$('#notif_title').value,
+            body: this.$$('#notif_body').value,
+            icon: this.$$('#notif_icon').value,
+            sound: this.$$('#notif_sound').value,
+            badge: this.$$('#notif_badge').value,
+            tag: this.$$('#notif_tag').value,
+            color: this.$$('#notif_color').value,
+            click_action: this.$$('#notif_click_action').value,
+            body_loc_key: this.$$('#notif_body_loc_key').value,
+            title_loc_key: this.$$('#notif_title_loc_key').value,
+            title_loc_args: this.$$('#notif_title_loc_args').value,
+            body_loc_args: this.$$('#notif_body_loc_args').value
+          };
+
+          // Validate the syntax of JSON
+          try {
+            if (this.notification.body_loc_args) { JSON.parse(this.notification.body_loc_args); }
+          } catch (err) {
+            this.log_("Notification validation failed.");
+            this.notification = {};
+            this.fire('validation-failed', 'Make sure Notification Body Loc Args is valid JSON');
+          }
+          try {
+            if (this.notification.title_loc_args) { JSON.parse(this.notification.title_loc_args); }
+          } catch (err) {
+            this.log_("Notification validation failed.");
+            this.notification = {};
+            this.fire('validation-failed', 'Make sure Notification Title Loc Args is valid JSON');
+          }
+
+          this.fire('notification-changed', this.notification);
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>

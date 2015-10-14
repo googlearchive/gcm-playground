@@ -1,0 +1,113 @@
+<!--
+// Copyright 2015 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+-->
+
+<link rel="import" href="../../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="request-previewer">
+
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <template>
+    <iron-collapse id="httpPreview">
+      <p>Request URL: <code>https://gcm-http.googleapis.com/gcm/send</code></p>
+      <p>Request Method: <code>POST</code></p>
+      <section>
+        <h4>Request Headers</h4>
+        <p>Content-Type: <code>application/json</code></p>
+        <p>Authorization: <code>key=YOUR_API_KEY</code>
+      </section>
+
+      <section>
+        <h4>Request Body</h4>
+        <paper-textarea value="{{body}}"></paper-textarea>
+      </section>
+    </iron-collapse>
+
+    <iron-collapse id="xmppPreview">
+      <section>
+        <h4>XMPP stanza</h4>
+        <paper-textarea value="{{body}}"></paper-textarea>
+      </section>
+    </iron-collapse>
+
+  </template>
+
+  <script>
+
+    (function () {
+      Polymer({
+
+        is: 'request-previewer',
+
+
+        properties: {
+
+          httpSelected: {
+            type: Boolean,
+            value: false
+          },
+
+          xmppSelected: {
+            type: Boolean,
+            value: false
+          },
+
+          body: {
+            type: String,
+            value: "",
+            observer: 'update_'
+          },
+
+        },
+
+
+        // TODO(karangoel): Remove debugging logs
+        log_: function(msg) {
+          utils.log('request-previewer', msg);
+        },
+
+
+        /**
+         * Update the state of the element.
+         */
+        update_: function() {
+          this.log_("Updating");
+          if (this.httpSelected) {
+            // HTTP message preview
+            this.$.httpPreview.opened = true;
+            this.$.xmppPreview.opened = false;
+          } else if (this.xmppSelected) {
+            // XMPP message preview
+            this.$.xmppPreview.opened = true;
+            this.$.httpPreview.opened = false;
+          } else {
+            this.$.xmppPreview.opened = false;
+            this.$.httpPreview.opened = false;
+          }
+        }
+
+      });
+    })();
+
+  </script>
+
+</dom-module>

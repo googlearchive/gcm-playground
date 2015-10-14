@@ -1,0 +1,124 @@
+{
+  "main": {
+    "sendMessageEndpoint": "http://192.168.99.100:4260/message",
+    "clientsEndpoint": "http://192.168.99.100:4260/clients",
+    "socketEndpoint": "http://192.168.99.100:4260/"
+  },
+  "notificationFields_": [
+    {
+      "label": "Title",
+      "id": "notif_title",
+      "android": true,
+      "ios": true,
+      "tooltip": "Notification title"
+    },
+    {
+      "label": "Body",
+      "id": "notif_body",
+      "android": true,
+      "ios": true,
+      "tooltip": "Notification body"
+    },
+    {
+      "label": "Icon",
+      "id": "notif_icon",
+      "android": true,
+      "ios": false,
+      "tooltip": "On Android: sets value to \"myicon\" for drawable resource \"myicon.png\""
+    },
+    {
+      "label": "Sound",
+      "id": "notif_sound",
+      "android": true,
+      "ios": true,
+      "tooltip": "Supports only \"default\" currently"
+    },
+    {
+      "label": "Badge",
+      "id": "notif_badge",
+      "android": false,
+      "ios": true,
+      "tooltip": "Indicates the badge on client app home icon"
+    },
+    {
+      "label": "Tag",
+      "id": "notif_tag",
+      "android": true,
+      "ios": false,
+      "tooltip": "Indicates whether each notification message results in a new entry on the notification center on Android"
+    },
+    {
+      "label": "Color",
+      "id": "notif_color",
+      "android": true,
+      "ios": false,
+      "tooltip": "Indicates color of the icon, expressed in #rrggbb format"
+    },
+    {
+      "label": "Click Action",
+      "id": "notif_click_action",
+      "android": true,
+      "ios": true,
+      "tooltip": "The action associated with a user click on the notification"
+    },
+    {
+      "label": "Body Loc Key",
+      "id": "notif_body_loc_key",
+      "android": false,
+      "ios": true,
+      "tooltip": "The key to the body string for localization"
+    },
+    {
+      "label": "Title Loc Key",
+      "id": "notif_title_loc_key",
+      "android": false,
+      "ios": true,
+      "tooltip": "The key to the title string for localization"
+    },
+    {
+      "label": "Body Loc Args (JSON)",
+      "id": "notif_body_loc_args",
+      "android": false,
+      "ios": true,
+      "textarea": true,
+      "tooltip": "The string value to replace format specifiers in body string for localization"
+    },
+    {
+      "label": "Title Loc Args (JSON)",
+      "id": "notif_title_loc_args",
+      "android": false,
+      "ios": true,
+      "textarea": true,
+      "tooltip": "The string value to replace format specifiers in title string for localization"
+    }
+  ],
+  "optionsFields_": [
+    {
+      "label": "Dry Run",
+      "id": "dry_run",
+      "tooltip": "This parameter, when set to true, allows developers to test a request without actually sending a message"
+    },
+    {
+      "label": "Delay While Idle",
+      "id": "delay_while_idle",
+      "tooltip": "When this parameter is set to true, it indicates that the message should not be sent until the device becomes active"
+    },
+    {
+      "label": "Content Available",
+      "id": "content_available",
+      "tooltip": "If true, an inactive client app is awoken"
+    },
+    {
+      "label": "Time to Live",
+      "id": "time_to_live",
+      "input": true,
+      "tooltip": "How long (in seconds) the message should be kept in GCM storage if the device is offline. Max = 4 weeks"
+    },
+    {
+      "label": "Collapse Key",
+      "id": "collapse_key",
+      "input": true,
+      "tooltip": "Identifies a group of messages that can be collapsed, so that only the last message gets sent when delivery can be resumed"
+    }
+  ]
+}

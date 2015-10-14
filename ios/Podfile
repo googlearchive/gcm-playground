@@ -1,0 +1,3 @@
+target 'GCM Playground' do
+    pod 'Google/CloudMessaging'
+end
