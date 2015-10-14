@@ -22,7 +22,7 @@ web:
   ports:
     - "3000:3000"
   volumes:
-    - web/:/src/gcm-playground/web/
+    - ./web/:/src/gcm-playground/web/ 
   links:
     - server
 
@@ -37,4 +37,4 @@ server:
   ports:
     - "4260:4260"
   volumes:
-    - server/:/src/gcm-playground/server/
+    - ./server/:/src/gcm-playground/server/

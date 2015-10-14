@@ -34,14 +34,18 @@ Getting Started
 
 #### Installation
 
-- [Install Docker and Docker Compose](https://docs.docker.com/compose/install/).
+- Install [Docker](https://docs.docker.com/installation/), [Docker Compose](https://docs.docker.com/compose/install/), and if using on a Mac [Docker Machine](https://docs.docker.com/machine/install-machine/).
 - Install [Node.js](https://nodejs.org/download/) >=0.12.0.
 - Clone this repo.
 - `$ ./start.sh`
 
 If the last command fails, you might need to give execute permission to the script. Do `$ chmod +x start.sh` and retry.
 
+
+
 #### Accessing services
+
+If using docker machine, run `docker-machine ls` to find out the VM IP address.
 
 If using boot2docker, run `$ boot2docker ip` to find out the VM IP address. Usually, the IP is `192.168.59.103`.
 
@@ -69,19 +73,15 @@ The following must be set before you can start using the GCM Playground:
     // GCM sender ID
     senderId = ""
 
-`web/settings.json`
+`web/app/settings.json`
 
-You should only need to change the IP address here. Replace `192.168.59.103` with the IP address that `boot2docker ip` gives you.
+You should only need to change the IP address here. Replace `192.168.59.103` with the IP address that `docker-machine ls` or `boot2docker ip` gives you.
 
     "main": {
       "sendMessageEndpoint": "http://192.168.59.103:4260/message",
       "clientsEndpoint": "http://192.168.59.103:4260/clients",
       "socketEndpoint": "http://192.168.59.103:4260/"
     },
-
-#### Until go-gcm is made public.
-
-Until **go-gcm** is made public, you'll need to copy your `~/.ssh/id_rsa` file in `server/` folder. Make sure this ssh key is added in your Github profile.
 
 Chrome App
 -----------

@@ -32,7 +32,7 @@ else
 fi
 
 echo "==> Install bower"
-if hash gulp 2>/dev/null; then
+if hash bower 2>/dev/null; then
   echo "bower installed."
 else
     sudo npm install -g bower
