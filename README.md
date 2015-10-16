@@ -1,7 +1,7 @@
 GCM Playground
 ============
 
-A reference implementation of a [GCM Application Server](https://developers.google.com/cloud-messaging/server#role) in the form of a playground that developers can use to test the Google Cloud Messaging Service.
+A reference implementation of a [GCM Application Server](https://developers.google.com/cloud-messaging/server#role) in the form of a playground that developers can use to test the Google Cloud Messaging Service. 
 
 
 Introduction
@@ -20,6 +20,7 @@ Pre-requisites
 --------------
 
 - Learn more about [Google Cloud Messaging](https://developers.google.com/cloud-messaging/gcm)
+- Watch the ["Re-engage your users with GCM notifications"](https://www.youtube.com/watch?v=HxbidYYAek8) DevByte video 
 
 #### Set Up an API Project and Credentials
 
