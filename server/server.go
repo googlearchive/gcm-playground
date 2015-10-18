@@ -47,12 +47,10 @@ const (
 
 var (
 	// API key from Cloud console
-	// TODO(karangoel): Remove this
-	apiKey = "AIzaSyCFVrvWMv0ueY0-wN_RWK_OJ_FmcgkoF_I"
+	apiKey = "<your_api_key>"
 
 	// GCM sender ID
-	// TODO(karangoel): Remove this
-	senderId = "1015367374593"
+	senderId = "<your_sender_id>"
 
 	// The name of the database to connect to
 	databaseName = "data.db"
