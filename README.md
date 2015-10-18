@@ -15,11 +15,13 @@ GCM Playground can be used to experiment sending and receiving messages with the
 - **Playground UI (`web/`)**: Made with Polymer, it is the main component that you will for sending downstream messages and receiving upstream messages.
 - **Client apps (`android/`, `chrome/`, `web/`)**: These client apps are used in conjunction with the playground UI to test various features of the GCM API.
 
+![](_docs/gcm_playground.png)
 
 Pre-requisites
 --------------
 
 - Learn more about [Google Cloud Messaging](https://developers.google.com/cloud-messaging/gcm)
+- Watch the ["Re-engage your users with GCM notifications"](https://www.youtube.com/watch?v=HxbidYYAek8) DevByte video 
 
 #### Set Up an API Project and Credentials
 
