@@ -85,23 +85,6 @@ You should only need to change the IP address here. Replace `192.168.59.103` wit
       "socketEndpoint": "http://192.168.59.103:4260/"
     },
 
-Chrome App
------------
-
-![](_docs/chrome.png)
-
-Included in `chrome/` is a Chrome app that can help you get started with the playground. The Chrome app lets you:
-
-- Register the client with the backend
-- Receive messages sent through the playground
-
-#### Usage
-
-- Open Chrome and go to menu > **Tools > Extensions**.
-- Click **Developer mode > Load unpacked extensions...**
-- Browse to and **Select** the `chrome/` folder.
-- On the Extensions page, **Launch** GCM Playground Receiver app.
-
 
 Android App
 ------------
@@ -121,6 +104,7 @@ Included in `android/` is an Android app that can help you get started with the 
 - Run the sample on your Android device.
 - Use the playground web UI to send a message to the registered device.
 - A notification containing the GCM message should be displayed on the device.
+
 
 iOS App
 ------------
@@ -142,6 +126,24 @@ Included in `ios/` is an iOS app that can help you get started with the playgrou
 - A notification containing the GCM message should be displayed on the device.
 
 Note: You need Swift 1.2 to run the app.
+
+
+Chrome App
+-----------
+
+![](_docs/chrome.png)
+
+Included in `chrome/` is a Chrome app that can help you get started with the playground. The Chrome app lets you:
+
+- Register the client with the backend
+- Receive messages sent through the playground
+
+#### Usage
+
+- Open Chrome and go to menu > **Tools > Extensions**.
+- Click **Developer mode > Load unpacked extensions...**
+- Browse to and **Select** the `chrome/` folder.
+- On the Extensions page, **Launch** GCM Playground Receiver app.
 
 
 Support
