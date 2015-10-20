@@ -100,7 +100,7 @@ Included in `android/` is an Android app that can help you get started with the 
 
 #### Usage
 
-- Follow the [quickstart guide](https://developers.google.com/cloud-messaging/) to set up your project in Android Studio.
+- Follow the [quickstart guide](https://developers.google.com/cloud-messaging/android/start) to set up your project in Android Studio.
 - Run the sample on your Android device.
 - Use the playground web UI to send a message to the registered device.
 - A notification containing the GCM message should be displayed on the device.
