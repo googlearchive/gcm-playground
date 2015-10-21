@@ -89,8 +89,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
     upstreamView.layer.borderWidth = 1
     upstreamView.layer.masksToBounds = false
 
-    // TODO(karangoel): Remove this, only for development
-    senderIdField.text = "1015367374593"
+    senderIdField.text = "<your_sender_ID>"
+    self.stringIdentifierField.text = "<a_name_to_recognize_the_device>"
   }
 
   // Hide the keyboard when click on "Return" or "Done" or similar

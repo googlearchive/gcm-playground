@@ -38,8 +38,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
       application.registerForRemoteNotifications()
 
       var gcmConfig = GCMConfig.defaultConfig()
-      // TODO(karangoel): Use this when adopting GcmReceiverDelegate
-      //gcmConfig.receiverDelegate = self
       gcmConfig.logLevel = GCMLogLevel.Debug
       GCMService.sharedInstance().startWithConfig(gcmConfig)
 

@@ -299,10 +299,10 @@ func main() {
 		}
 	}()
 
-	// Start the server
-	log.Println(fmt.Sprintf("Started, serving at port %v", port))
+	//Start the server
 	err := http.ListenAndServe(fmt.Sprintf(":%v", port), Handler())
 	if err != nil {
 		log.Fatal("ListenAndServe: " + err.Error())
 	}
+	log.Println(fmt.Sprintf("Started, serving at port %v", port))
 }
