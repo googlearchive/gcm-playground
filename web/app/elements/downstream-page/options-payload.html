@@ -138,13 +138,6 @@
 
         },
 
-
-        // TODO(karangoel): Remove debugging logs
-        log_: function(msg) {
-          utils.log('options-payload', msg);
-        },
-
-
         /**
          * Generate and populate the message ID field with a random one
          */
@@ -168,7 +161,6 @@
          * Returns `null` if validation failed.
          */
         validate_: function() {
-          this.log_("Options validating.");
 
           this.options = {
             delivery_receipt_requested: this.$.delivery_receipt_requested.checked,

@@ -58,19 +58,11 @@
 
         },
 
-
-        // TODO(karangoel): Remove debugging logs
-        log_: function(msg) {
-          utils.log('protocol-chooser', msg);
-        },
-
-
         /**
          * Handles the selection of the downstream message protocol.
          */
         protocolChangeHandler: function(e) {
           var selectedProtocol = e.target.attributes.name.value;
-          this.log_("Selected " + selectedProtocol);
           this.fire('protocol-changed', { choice: selectedProtocol });
         },
 
@@ -79,7 +71,6 @@
          * Deselects all protocol options.
          */
         reset: function() {
-          this.log_('Deselecting all protocols.');
           Polymer.dom(this.$.protocol)
                  .querySelectorAll('paper-radio-button[checked]')
                  .map(function(radio) {

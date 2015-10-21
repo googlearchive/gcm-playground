@@ -79,18 +79,10 @@
 
         },
 
-
-        // TODO(karangoel): Remove debugging logs
-        log_: function(msg) {
-          utils.log('request-previewer', msg);
-        },
-
-
         /**
          * Update the state of the element.
          */
         update_: function() {
-          this.log_("Updating");
           if (this.httpSelected) {
             // HTTP message preview
             this.$.httpPreview.opened = true;

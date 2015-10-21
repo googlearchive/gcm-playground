@@ -147,9 +147,8 @@ public class MyActivity extends Activity implements View.OnClickListener {
         LocalBroadcastManager.getInstance(this).registerReceiver(mDownstreamBroadcastReceiver,
                 new IntentFilter(RegistrationConstants.NEW_DOWNSTREAM_MESSAGE));
 
-        // TODO(karangoel): Remove these. Only for development purposes
-        senderIdField.setText("1015367374593");
-        stringIdentifierField.setText("Nexus 5");
+        senderIdField.setText("<your_sender_ID>");
+        stringIdentifierField.setText("<a_name_to_recognize_the_device>");
     }
 
     /**

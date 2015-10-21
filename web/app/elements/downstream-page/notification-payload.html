@@ -104,19 +104,11 @@
 
         },
 
-
-        // TODO(karangoel): Remove debugging logs
-        log_: function(msg) {
-          utils.log('notification-payload', msg);
-        },
-
-
         /**
          * Builds, validates the notification payload.
          * Returns `null` if validation failed.
          */
         validate_: function() {
-          this.log_("Notification validating.");
           this.notification = {
             title: this.$$('#notif_title').value,
             body: this.$$('#notif_body').value,
@@ -136,14 +128,12 @@
           try {
             if (this.notification.body_loc_args) { JSON.parse(this.notification.body_loc_args); }
           } catch (err) {
-            this.log_("Notification validation failed.");
             this.notification = {};
             this.fire('validation-failed', 'Make sure Notification Body Loc Args is valid JSON');
           }
           try {
             if (this.notification.title_loc_args) { JSON.parse(this.notification.title_loc_args); }
           } catch (err) {
-            this.log_("Notification validation failed.");
             this.notification = {};
             this.fire('validation-failed', 'Make sure Notification Title Loc Args is valid JSON');
           }

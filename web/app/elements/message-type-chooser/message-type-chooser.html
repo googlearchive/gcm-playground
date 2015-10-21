@@ -48,19 +48,11 @@
 
         is: 'message-type-chooser',
 
-
-        // TODO(karangoel): Remove debugging logs
-        _log: function(msg) {
-          utils.log('message-type-chooser', msg);
-        },
-
-
         /**
          * Handles the selection of the downstream message type.
          */
         messageTypeChangeHandler: function(e) {
           var selected_type = e.target.attributes.name.value;
-          this._log("Selected " + selected_type);
           this.fire('message-type-changed', { choice: selected_type });
         }
 

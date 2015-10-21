@@ -216,13 +216,6 @@
           'options-changed': 'optionsUpdated_',
         },
 
-
-        // TODO(karangoel): Remove debugging logs
-        log_: function(msg) {
-          utils.log('downstream-page', msg);
-        },
-
-
         /********************************************
          * EVENT HANDLERS
          ********************************************/
@@ -232,8 +225,6 @@
          */
         messageTypeChangeHandler: function(e) {
           var selectedType = e.detail.choice;
-
-          this.log_("Selected " + selectedType);
 
           this.$.protocolChooser.reset();
           this.$.recipientsChooser.deselectAllRegIds_();
@@ -248,7 +239,6 @@
          */
         protocolChangeHandler: function(e) {
           this.selectedProtocol = e.detail.choice;
-          this.log_("Selected " + this.selectedProtocol);
           this.updateMessageBody_();
         },
 
@@ -266,7 +256,6 @@
           } else if (action === 'add') {
             this.push('registrationIds', regId);
           }
-          this.log_(this.registrationIds);
           this.updateMessageBody_();
         },
 
@@ -276,7 +265,6 @@
          */
         customListHandler: function(e) {
           this.customIds = e.detail.ids;
-          this.log_(this.customIds);
           this.updateMessageBody_();
         },
 

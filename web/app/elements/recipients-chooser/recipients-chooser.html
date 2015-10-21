@@ -101,13 +101,6 @@
 
         },
 
-
-        // TODO(karangoel): Remove debugging logs
-        log_: function(msg) {
-          utils.log('recipients-chooser', msg);
-        },
-
-
         /**
          * Handles the selection of registration ids.
          */
@@ -117,7 +110,6 @@
 
           if (!el.checked) {
             // Deselecting, remove from the array
-            this.log_('Removing reg id');
             this.fire('reg-id-changed', {
               action: 'remove',
               regId: selected_id
@@ -126,7 +118,6 @@
             switch (this.limit) {
               case -1:
                 // Multicast message
-                this.log_('Multicast message selected, adding this ID');
                 this.fire('reg-id-changed', {
                   action: 'add',
                   regId: selected_id
@@ -134,23 +125,19 @@
                 break;
               case 0:
                 // Pubsub or Notification group
-                this.log_('Pubsub or notif group selected, NOT adding.');
                 el.checked = false;
                 this.fire('show-toast', 'You cannot choose registration IDs ' +
                                         'in Pubsub or notification groups.');
                 break;
               case 1:
                 // Unicast
-                this.log_('Unicast message type selected.');
 
                 if (this.registrationIdsLength === 0) {
-                  this.log_('\tAdding this ID');
                   this.fire('reg-id-changed', {
                     action: 'add',
                     regId: selected_id
                   });
                 } else {
-                  this.log_('\tNOT adding this ID');
                   el.checked = false;
                   this.fire('show-toast', 'You cannot choose more than one ' +
                                           'reg IDs in a unicast message.');
@@ -176,7 +163,6 @@
          * Returns an array of all selected registration IDs.
          */
         getSelectedIds: function() {
-          this.log_('Returning all selected IDs.');
           var selectedIds_ = [];
           Polymer.dom(this.$.regIdsList)
                  .querySelectorAll('paper-checkbox[checked]')
@@ -196,7 +182,6 @@
          * Deselects all selected registration IDs.
          */
         deselectAllRegIds_: function() {
-          this.log_('Deselecting all recipients.');
           Polymer.dom(this.$.regIdsList)
                  .querySelectorAll('paper-checkbox[checked]')
                  .map(function(checkbox) {
@@ -209,7 +194,6 @@
          * Disables the option to select any registration IDs.
          */
         disableAllRegIds_: function() {
-          this.log_('Disabling all recipients.');
           this.hideRegIdList_();
 
           Polymer.dom(this.$.regIdsList)
@@ -224,7 +208,6 @@
          * Enables the option to select any registration IDs.
          */
         enableAllRegIds_: function() {
-          this.log_('Enabling all recipients.');
           this.showRegIdList_();
 
           Polymer.dom(this.$.regIdsList)
@@ -239,7 +222,6 @@
          * Empties the custom list of registration IDs.
          */
         emptyCustomList_: function() {
-          this.log_('Emptying custom list');
           this.$.customList.value = "";
         },
 
