@@ -58,14 +58,7 @@
         <paper-item>
           <paper-item-body>
             <div>
-              <template is="dom-if" if="{{item.string_identifier}}">
                 <paper-checkbox on-change="registrationIdChangeHandler" token="{{item.registration_token}}"><span>{{item.string_identifier}}</span></paper-checkbox>
-                <div secondary><span>{{item.registration_token}}</span></div>
-              </template>
-              <template is="dom-if" if="{{!item.string_identifier}}">
-                <paper-checkbox on-change="registrationIdChangeHandler" token="{{item.registration_token}}"><span>{{item.registration_token}}</span></paper-checkbox>
-                <div secondary><span>{{item.string_identifier}}</span></div>
-              </template>
             </div>
           </paper-item-body>
         </paper-item>
