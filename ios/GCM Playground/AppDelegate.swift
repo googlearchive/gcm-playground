@@ -20,6 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
   var window: UIWindow?
 
   var connectedToGCM = false
+  var senderId: String?
 
   let apnsRegisteredKey = "onApnsRegistered"
   let registrationKey = "onRegistrationCompleted"
@@ -28,13 +29,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions:
     [NSObject: AnyObject]?) -> Bool {
+      // Configure the Google context: parses the GoogleService-Info.plist, and initializes
+      // the services that have entries in the file
+      var configureError:NSError?
+      GGLContext.sharedInstance().configureWithError(&configureError)
+      assert(configureError == nil, "Error configuring Google services: \(configureError)")
+      senderId = GGLContext.sharedInstance().configuration.gcmSenderID
+
       // Register for remote notifications
-      var types: UIUserNotificationType = UIUserNotificationType.Badge |
-        UIUserNotificationType.Alert |
-        UIUserNotificationType.Sound
-      var settings: UIUserNotificationSettings =
-      UIUserNotificationSettings( forTypes: types, categories: nil )
-      application.registerUserNotificationSettings( settings )
+      let settings: UIUserNotificationSettings =
+      UIUserNotificationSettings(forTypes: [.Alert, .Badge, .Sound], categories: nil)
+      application.registerUserNotificationSettings(settings)
       application.registerForRemoteNotifications()
 
       var gcmConfig = GCMConfig.defaultConfig()
@@ -49,10 +54,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
     GCMService.sharedInstance().connectWithHandler({
       (NSError error) -> Void in
       if error != nil {
-        println("Could not connect to GCM: \(error.localizedDescription)")
+        print("Could not connect to GCM: \(error.localizedDescription)")
       } else {
         self.connectedToGCM = true
-        println("Connected to GCM")
+        print("Connected to GCM")
       }
     })
   }
@@ -70,7 +75,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
 
   func application( application: UIApplication, didFailToRegisterForRemoteNotificationsWithError
     error: NSError ) {
-      println("Registration for remote notification failed with error: \(error.localizedDescription)")
+      print("Registration for remote notification failed with error: \(error.localizedDescription)")
       let userInfo = ["error": error.localizedDescription]
       NSNotificationCenter.defaultCenter().postNotificationName(
         registrationKey, object: nil, userInfo: userInfo)
@@ -78,7 +83,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
 
   func application( application: UIApplication,
     didReceiveRemoteNotification userInfo: [NSObject : AnyObject]) {
-      println("Notification received: \(userInfo)")
+      print("Notification received: \(userInfo)")
       // This works only if the app started the GCM service
       GCMService.sharedInstance().appDidReceiveMessage(userInfo);
       // Handle the received message
@@ -89,7 +94,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
   func application( application: UIApplication,
     didReceiveRemoteNotification userInfo: [NSObject : AnyObject],
     fetchCompletionHandler handler: (UIBackgroundFetchResult) -> Void) {
-      println("Notification received: \(userInfo)")
+      print("Notification received: \(userInfo)")
       // This works only if the app started the GCM service
       GCMService.sharedInstance().appDidReceiveMessage(userInfo);
       // Handle the received message
@@ -101,7 +106,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
 
   func onTokenRefresh() {
     // A rotation of the registration tokens is happening, so the app needs to request a new token.
-    println("The GCM registration token needs to be changed.")
+    print("The GCM registration token needs to be changed.")
     NSNotificationCenter.defaultCenter().postNotificationName(tokenRefreshKey, object: nil)
   }
 

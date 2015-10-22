@@ -20,52 +20,24 @@ GCM Playground can be used to experiment sending and receiving messages with the
 Pre-requisites
 --------------
 
-- Learn more about [Google Cloud Messaging](https://developers.google.com/cloud-messaging/gcm)
+- Learn more about [Google Cloud Messaging](https://developers.google.com/cloud-messaging)
 - Watch the ["Re-engage your users with GCM notifications"](https://www.youtube.com/watch?v=HxbidYYAek8) DevByte video 
-
-#### Set Up an API Project and Credentials
-
-- Follow [this link to Google Developers Console](https://console.developers.google.com/flows/enableapi?apiid=googlecloudmessaging) create a project with Google Cloud Messaging enabled.
-- You can create a new project here, or choose an existing project to enable GCM in.
-- Once the project has been created, you can find your project ID and project number on the **Home** page of the project. For example, **Project Number: 670330094152**.
-- Copy down your project number. You will use it later on as the [GCM sender ID](https://developers.google.com/cloud-messaging/gcm.html#senderid).
 
 
 Getting Started
 ---------------
 
-#### Installation
-
-- Install [Docker](https://docs.docker.com/installation/), [Docker Compose](https://docs.docker.com/compose/install/), and if using on a Mac [Docker Machine](https://docs.docker.com/machine/install-machine/).
-- Install [Node.js](https://nodejs.org/download/) >=0.12.0.
-- Clone this repo.
-- `$ ./start.sh`
-
-If the last command fails, you might need to give execute permission to the script. Do `$ chmod +x start.sh` and retry.
-
-
-
-#### Accessing services
-
-If using docker machine, run `docker-machine ls` to find out the VM IP address.
-
-If using boot2docker, run `$ boot2docker ip` to find out the VM IP address. Usually, the IP is `192.168.59.103`.
-
-The ports that are being used are:
-
-- **`3000` - Playground Web UI**
-- `4260` - App server
-
-When using mobile app clients, you would want to tunnel the app server traffic so it's accessible via the public network. To do that, download [ngrok](https://ngrok.com) and run `$ ./ngrok http <IP ADDRESS>:4260`. Optionally, you can also deploy the playground on any public cloud and use the server's address.
-
-
 #### Configuration
 
-The following must be set before you can start using the GCM Playground:
+Before you can start using the GCM Playground you need to configure a project and create credentials for access:
 
-- Login to your [Google Developers Console](https://console.developers.google.com)
-- In the sidebar, under **APIs & Auth**, click on **Credentials**.
-- Then generate an **API Key**. Make sure it's a Server Key.
+1. Follow [this link to get a configuration file](https://developers.google.com/mobile/add) to use GCM.
+  - If you want to use the Android client, configure your app to use `com.google.samples.apps.gcmplayground` for the package name. You can use a different package name if you want,
+  but then you have to adapt the source code of the Android client accordingly. At the end of the configuration flow, download the configuration file to the `android/app` folder.
+  - If you want to use the iOS client, use the bundle ID of an app that has the Push Notifications feature enabled, and upload its Development SSL Certificate when requested to do so. At the end of the configuration flow, download the configuration file to your machine.
+  - If you want to use the Chrome App, just configure the project to use an Android client.
+
+2. After you enable Cloud Messaging, the configuration flow shows you your values of `Server API Key` `and SenderId`. Replace the placeholders value in `server/server.go` with the value you obtained:
 
 `server/server.go`
 
@@ -86,6 +58,32 @@ You should only need to change the IP address here. Replace `192.168.59.103` wit
     },
 
 
+#### Installation - App Server and Playground UI
+
+- Install [Docker](https://docs.docker.com/installation/), [Docker Compose](https://docs.docker.com/compose/install/), and if using on a Mac [Docker Machine](https://docs.docker.com/machine/install-machine/).
+- Install [Node.js](https://nodejs.org/download/) >=0.12.0.
+- Clone this repo.
+- `$ ./start.sh`
+
+If the last command fails, you might need to give execute permission to the script. Do `$ chmod +x start.sh` and retry.
+
+
+#### Accessing services - App Server and Playground UI
+
+If using docker machine, run `docker-machine ls` to find out the VM IP address.
+
+If using boot2docker, run `$ boot2docker ip` to find out the VM IP address. Usually, the IP is `192.168.59.103`.
+
+The ports that are being used are:
+
+- **`3000` - Playground Web UI**
+- `4260` - App server
+
+So if your IP is `192.168.59.103`, load `192.168.59.103:3000` in the browser of the computer running docker to access the Playground UI.
+
+If you want to access the Playground Web UI using a mobile client instead of the computer running docker, you need to tunnel the app server traffic so it's accessible via the public network. To do that, download [ngrok](https://ngrok.com) and run `$ ./ngrok http <IP ADDRESS>:4260`. Alternatively, you could also deploy the playground on any public cloud and use the server's address.
+
+
 Android App
 ------------
 
@@ -93,15 +91,21 @@ Android App
 
 Included in `android/` is an Android app that can help you get started with the playground. The Android app lets you:
 
-- Register and unregister the client with the backend
-- Receive messages sent through the playground
-- Subscribe to topics using Pubsub
-- Send upstream messages
+- Register and unregister the client with the backend.
+- Receive messages sent through the playground.
+- Subscribe to topics using Pubsub.
+- Send upstream messages.
+
+#### Getting Started
+
+- Open Android Studio.
+- Select **File > Open**, browse to where you cloned the gcm-playground repository, and open the android folder (if you are in the Android Studio start screen, you can select **Open an existing Android Studio project** and use this same path).
+- Make sure that the configuration file is in the right place. Check the **Configuration** section above for instructions.
+
 
 #### Usage
-
-- Follow the [quickstart guide](https://developers.google.com/cloud-messaging/android/client) to set up your project in Android Studio.
 - Run the sample on your Android device.
+- Provide a string identifier for your device (e.g. "My Nexus5"), and click **REGISTER**.
 - Use the playground web UI to send a message to the registered device.
 - A notification containing the GCM message should be displayed on the device.
 
@@ -113,19 +117,27 @@ iOS App
 
 Included in `ios/` is an iOS app that can help you get started with the playground. The iOS app lets you:
 
-- Register and unregister the client with the backend
-- Receive messages sent through the playground
-- Subscribe to topics using Pubsub
-- Send upstream messages
+- Register and unregister the client with the backend.
+- Receive messages sent through the playground.
+- Subscribe to topics using Pubsub.
+- Send upstream messages.
+
+#### Getting Started
+
+- If you don't have CocoaPods installed on your machine, follow [the instructions](https://developers.google.com/ios/cocoapods) and istall it.
+- Open a terminal window and navigate to the `gcm-playground/ios` folder and run `pod install`.
+- Run `open GCM Playground.xcworkspace` to open the project in xcode.
+- In xcode, replace the project bundle ID with the bundle ID that you have used in the configuration flow.
+- In xcode, add the configuration file previously downloaded to the `GCM Playground` target. Check the **Configuration** section above for instructions.
 
 #### Usage
 
-- Follow the [quickstart guide](https://developers.google.com/cloud-messaging/ios/start) to set up your project in XCode.
 - Run the sample on your iOS device.
+- Provide a string identifier for your device (e.g. "My iphone6"), and click **Register**.
 - Use the playground web UI to send a message to the registered device.
 - A notification containing the GCM message should be displayed on the device.
 
-Note: You need Swift 1.2 to run the app.
+Note: You need Swift 2.0 to run the app.
 
 
 Chrome App

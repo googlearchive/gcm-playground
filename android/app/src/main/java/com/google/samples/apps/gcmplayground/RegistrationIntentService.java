@@ -31,8 +31,6 @@ public class RegistrationIntentService extends IntentService {
 
     private static final String TAG = "RegIntentService";
 
-    private String senderId;
-
     public RegistrationIntentService() {
         super(TAG);
     }
@@ -47,11 +45,10 @@ public class RegistrationIntentService extends IntentService {
         try {
             // Initially this call goes out to the network to retrieve the token, subsequent
             // calls are local.
-            senderId = extras.getString(RegistrationConstants.SENDER_ID);
             String string_identifier = extras.getString(RegistrationConstants.STRING_IDENTIFIER);
 
             token = InstanceID.getInstance(this)
-                    .getToken(senderId, GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
+                    .getToken(getString(R.string.gcm_defaultSenderId), GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             Log.d(TAG, "GCM Registration Token: " + token);
 
             // Register token with app server.
@@ -84,7 +81,8 @@ public class RegistrationIntentService extends IntentService {
     private void sendRegistrationToServer(String token, String string_identifier) throws IOException {
         Bundle registration = createRegistrationBundle(token, string_identifier);
 
-        GoogleCloudMessaging.getInstance(this).send(GcmPlaygroundUtil.getServerUrl(senderId),
+        GoogleCloudMessaging.getInstance(this).send(
+                GcmPlaygroundUtil.getServerUrl(getString(R.string.gcm_defaultSenderId)),
                 String.valueOf(System.currentTimeMillis()), registration);
     }
 

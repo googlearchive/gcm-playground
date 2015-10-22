@@ -55,7 +55,6 @@ public class MyActivity extends Activity implements View.OnClickListener {
     private Button unregisterButton;
     private Button sendButton;
     private Button subscribeTopicButton;
-    private EditText senderIdField;
     private EditText stringIdentifierField;
     private EditText upstreamMessageField;
     private EditText topicField;
@@ -71,7 +70,6 @@ public class MyActivity extends Activity implements View.OnClickListener {
 
         registerButton = (Button) findViewById(R.id.register_button);
         unregisterButton = (Button) findViewById(R.id.unregister_button);
-        senderIdField = (EditText) findViewById(R.id.sender_id);
         stringIdentifierField = (EditText) findViewById(R.id.string_identifier);
         registrationTokenFieldView = (TextView) findViewById(R.id.registeration_token);
         statusView = (TextView) findViewById(R.id.status);
@@ -147,7 +145,6 @@ public class MyActivity extends Activity implements View.OnClickListener {
         LocalBroadcastManager.getInstance(this).registerReceiver(mDownstreamBroadcastReceiver,
                 new IntentFilter(RegistrationConstants.NEW_DOWNSTREAM_MESSAGE));
 
-        senderIdField.setText("<your_sender_ID>");
         stringIdentifierField.setText("<a_name_to_recognize_the_device>");
     }
 
@@ -223,9 +220,9 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     public void registerClient() {
         // Get the sender ID
-        String senderId = getSenderId();
-        if (senderId != "") {
-            String stringId = stringIdentifierField.getText().toString();
+        String senderId = getString(R.string.gcm_defaultSenderId);
+        String stringId = stringIdentifierField.getText().toString();
+        if (senderId != "" && stringId != "") {
 
             progressBar.setVisibility(View.VISIBLE);
 
@@ -241,7 +238,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      * Calls the GCM API to unregister this client
      */
     public void unregisterClient() {
-        String senderId = getSenderId();
+        String senderId = getString(R.string.gcm_defaultSenderId);
         if (senderId != "") {
             // Create the bundle for registration with the server.
             Bundle registration = new Bundle();
@@ -262,7 +259,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      * Sends an upstream message.
      */
     public void sendMessage() {
-        String senderId = getSenderId();
+        String senderId = getString(R.string.gcm_defaultSenderId);
         if (senderId != "") {
             String text = upstreamMessageField.getText().toString();
             if (text == "") {
@@ -290,7 +287,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      * Subscribes client to the entered topic.
      */
     public void subscribeToTopic() {
-        String senderId = getSenderId();
+        String senderId = getString(R.string.gcm_defaultSenderId);
         if (senderId != "") {
             String topic = topicField.getText().toString().trim();
             if (topic == "" || !topic.startsWith(TOPIC_PREFIX) ||
@@ -341,17 +338,6 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     private void showToast(CharSequence text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * @return the sender ID entered by the user.
-     */
-    private String getSenderId() {
-        String senderId = senderIdField.getText().toString();
-        if (senderId == "") {
-            showToast("Sender ID cannot be empty.");
-        }
-        return senderId;
     }
 
     /**

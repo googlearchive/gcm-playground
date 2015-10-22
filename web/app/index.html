@@ -59,10 +59,6 @@
       <paper-tabs selected="{{route}}">
 
         <paper-tab link>
-          <a class="horizontal center-center layout" data-route="home" href="/">Settings</a>
-        </paper-tab>
-
-        <paper-tab link>
           <a class="horizontal center-center layout" data-route="downstream" href="/downstream">Downstream</a>
         </paper-tab>
 
@@ -83,10 +79,6 @@
                  last-response="{{settings}}"
                  method='GET'>
       </iron-ajax>
-
-      <section data-route="home">
-        <h2>Homepage</h2>
-      </section>
 
       <section main data-route="downstream">
         <downstream-page settings="[[settings]]"></downstream-page>

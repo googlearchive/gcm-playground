@@ -226,9 +226,11 @@ func onMessageReceived(cm gcm.CcsMessage) error {
 			return errors.New("Error decoding string identifier for new client.")
 		}
 
-		client := Client{token, string_identifier}
-		if !ClientExistsInDb(client.RegistrationToken) {
+		if !ClientExistsInDb(token) {
+			client := Client{token, string_identifier}
 			db.Create(&client)
+		} else {
+			db.Model(Client{}).Where("registration_token = ?", token).Update("string_identifier", string_identifier)
 		}
 
 		// Send the client registered status.

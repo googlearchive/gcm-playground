@@ -30,9 +30,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
   let topicPrefix: String = "/topics/"
 
   @IBOutlet weak var registrationStatus: UITextView!
-  @IBOutlet weak var registrationToken: UITextView!
 
-  @IBOutlet weak var senderIdField: UITextField!
   @IBOutlet weak var stringIdentifierField: UITextField!
   @IBOutlet weak var downstreamPayloadField: UITextView!
 
@@ -46,14 +44,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
   @IBOutlet weak var upstreamMessageField: UITextField!
   @IBOutlet weak var upstreamMessageSendButton: UIButton!
 
-  @IBOutlet weak var pubsubView: UIView!
-  @IBOutlet weak var upstreamView: UIView!
-
   var apnsToken: NSData!
   var token: String = ""
   var appDelegate: AppDelegate!
 
-  var gcmSenderID: String?
   var stringIdentifier: String?
 
   var registrationOptions = [String: AnyObject]()
@@ -76,20 +70,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
     NSNotificationCenter.defaultCenter().addObserver(self, selector: "handleReceivedMessage:",
       name: appDelegate.messageKey, object: nil)
 
-    self.senderIdField.delegate = self
     self.stringIdentifierField.delegate = self
     self.topicNameField.delegate = self
     self.upstreamMessageField.delegate = self
 
-    // Add borders to pubsub and upstream message views
-    pubsubView.layer.borderColor = UIColor.grayColor().CGColor
-    pubsubView.layer.borderWidth = 1
-    pubsubView.layer.masksToBounds = true
-    upstreamView.layer.borderColor = UIColor.grayColor().CGColor
-    upstreamView.layer.borderWidth = 1
-    upstreamView.layer.masksToBounds = false
-
-    senderIdField.text = "<your_sender_ID>"
     self.stringIdentifierField.text = "<a_name_to_recognize_the_device>"
   }
 
@@ -110,12 +94,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
   // Register button click handler.
   @IBAction func registerClient(sender: UIButton) {
     // Get the fields values
-    gcmSenderID = senderIdField.text
     stringIdentifier = stringIdentifierField.text
 
     // Validate field values
-    if (gcmSenderID == "") {
-      showAlert("Invalid input", message: "Sender ID and host cannot be empty.")
+    if (stringIdentifier == "") {
+      showAlert("Invalid input", message: "Please provide an identifier for your device.")
       return
     }
 
@@ -127,7 +110,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     GGLInstanceID.sharedInstance().startWithConfig(instanceIDConfig)
     registrationOptions = [kGGLInstanceIDRegisterAPNSOption:apnsToken,
       kGGLInstanceIDAPNSServerTypeSandboxOption:true]
-    GGLInstanceID.sharedInstance().tokenWithAuthorizedEntity(gcmSenderID,
+    GGLInstanceID.sharedInstance().tokenWithAuthorizedEntity(appDelegate.senderId!,
       scope: kGGLInstanceIDScopeGCM, options: registrationOptions, handler: registrationHandler)
   }
 
@@ -150,7 +133,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
   // Send upstream message button handler.
   @IBAction func sendUpstreamMessage(sender: UIButton) {
-    let text = upstreamMessageField.text
+    let text = upstreamMessageField.text!
     if (text == "") {
       showAlert("Can't send message", message: "Please enter a message to send")
       return
@@ -163,9 +146,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
   // Subscribe to topic button handler.
   @IBAction func subscribeToTopic(sender: UIButton) {
-    let topic = topicNameField.text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+    let topic = topicNameField.text!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
     // Topic must begin with "/topics/" and have a name after the prefix
-    if (topic == "" || !topic.hasPrefix(topicPrefix) || count(topic) <= count(topicPrefix)) {
+    if (topic == "" || !topic.hasPrefix(topicPrefix) || topic.characters.count <= topicPrefix.characters.count) {
       showAlert("Invalid topic name", message: "Make sure topic is in format \"/topics/topicName\"")
       return
     }
@@ -175,10 +158,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
         if (error != nil) {
           // Error 3001 is "already subscribed". Treat as success.
           if error.code == 3001 {
-            println("Already subscribed to \(topic)")
+            print("Already subscribed to \(topic)")
             self.updateUI("Subscribed to topic \(topic)", registered: true)
           } else {
-            println("Subscription failed: \(error.localizedDescription)");
+            print("Subscription failed: \(error.localizedDescription)");
             self.updateUI("Subscription failed for topic \(topic)", registered: false)
           }
         } else {
@@ -198,10 +181,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
       if let deviceToken = info["deviceToken"] {
         apnsToken = deviceToken
       } else {
-        println("Could not decode the NSNotification that contains APNS token.")
+        print("Could not decode the NSNotification that contains APNS token.")
       }
     } else {
-      println("Could not decode the NSNotification userInfo that contains APNS token.")
+      print("Could not decode the NSNotification userInfo that contains APNS token.")
     }
   }
 
@@ -214,7 +197,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         updateUI("Registration SUCCEEDED", registered: true)
       }
     } else {
-      println("Software failure.")
+      print("Software failure.")
     }
   }
 
@@ -227,8 +210,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
   // GCM token should be refreshed
   func onTokenRefresh() {
     // A rotation of the registration tokens is happening, so the app needs to request a new token.
-    println("The GCM registration token needs to be changed.")
-    GGLInstanceID.sharedInstance().tokenWithAuthorizedEntity(gcmSenderID,
+    print("The GCM registration token needs to be changed.")
+    GGLInstanceID.sharedInstance().tokenWithAuthorizedEntity(appDelegate.senderId!,
       scope: kGGLInstanceIDScopeGCM, options: registrationOptions, handler: registrationHandler)
   }
 
@@ -236,10 +219,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
   func registrationHandler(registrationToken: String!, error: NSError!) {
     if (registrationToken != nil) {
       token = registrationToken
-      println("Registration Token: \(registrationToken)")
+      print("Registration Token: \(registrationToken)")
       registerWithAppServer()
     } else {
-      println("Registration to GCM failed with error: \(error.localizedDescription)")
+      print("Registration to GCM failed with error: \(error.localizedDescription)")
       registrationError(error.localizedDescription)
     }
   }
@@ -264,13 +247,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
       }
       downstreamPayloadField.text = info.description
     } else {
-      println("Software failure. Guru meditation.")
+      print("Software failure. Guru meditation.")
     }
   }
 
   // Calls the app server to register the current reg token.
   func registerWithAppServer() {
-    let message = [keyAction: registerNewClient, keyRegistrationToken: token, keyStringIdentifier: stringIdentifierField.text]
+    let message = [keyAction: registerNewClient, keyRegistrationToken: token, keyStringIdentifier: stringIdentifierField.text!]
     sendMessage(message)
   }
 
@@ -282,7 +265,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     // we don't use an already-used ID.
     let nextMessageID: String = NSDate().timeIntervalSince1970.description
 
-    let to: String = senderIdField.text + gcmAddress
+    let to: String = appDelegate.senderId! + gcmAddress
     GCMService.sharedInstance().sendMessage(message as [NSObject : AnyObject], to: to, withId: nextMessageID)
   }
 
@@ -293,7 +276,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
   func updateUI(status: String, registered: Bool) {
     // Set status and token text
     registrationStatus.text = status
-    registrationToken.text = token
 
     // Button enabling
     registerButton.enabled = !registered

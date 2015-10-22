@@ -90,6 +90,12 @@ proguard/
 # Log Files
 *.log
 
+.idea
+*.iml
+*.aar
+*.apk
+
+
 *.iml
 #####=== Java ===#####
 
@@ -130,6 +136,11 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+Podfile.lock
+*.xcworkspace/
 
 Pods/
 id_rsa
+
+google-services.json
+GoogleService-Info.plist
