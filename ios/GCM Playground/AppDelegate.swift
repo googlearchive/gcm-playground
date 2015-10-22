@@ -42,7 +42,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GGLInstanceIDDelegate {
       application.registerUserNotificationSettings(settings)
       application.registerForRemoteNotifications()
 
-      var gcmConfig = GCMConfig.defaultConfig()
+      let gcmConfig = GCMConfig.defaultConfig()
       gcmConfig.logLevel = GCMLogLevel.Debug
       GCMService.sharedInstance().startWithConfig(gcmConfig)
 
