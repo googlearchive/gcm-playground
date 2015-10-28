@@ -94,7 +94,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
         // Restore from saved instance state
         if (savedInstanceState != null) {
             token = savedInstanceState.getString(RegistrationConstants.EXTRA_KEY_TOKEN, "");
-            if (token != "") {
+            if (!("".equals(token))) {
                 updateUI("Registration SUCCEEDED", true);
             }
         }
@@ -222,7 +222,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
         // Get the sender ID
         String senderId = getString(R.string.gcm_defaultSenderId);
         String stringId = stringIdentifierField.getText().toString();
-        if (senderId != "" && stringId != "") {
+        if (!("".equals(senderId)) && !("".equals(stringId))) {
 
             progressBar.setVisibility(View.VISIBLE);
 
@@ -239,7 +239,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     public void unregisterClient() {
         String senderId = getString(R.string.gcm_defaultSenderId);
-        if (senderId != "") {
+        if (!("".equals(senderId))) {
             // Create the bundle for registration with the server.
             Bundle registration = new Bundle();
             registration.putString(RegistrationConstants.ACTION, RegistrationConstants.UNREGISTER_CLIENT);
@@ -260,7 +260,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     public void sendMessage() {
         String senderId = getString(R.string.gcm_defaultSenderId);
-        if (senderId != "") {
+        if (!("".equals(senderId))) {
             String text = upstreamMessageField.getText().toString();
             if (text == "") {
                 showToast("Please enter a message to send");
@@ -288,7 +288,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     public void subscribeToTopic() {
         String senderId = getString(R.string.gcm_defaultSenderId);
-        if (senderId != "") {
+        if (!("".equals(senderId)) {
             String topic = topicField.getText().toString().trim();
             if (topic == "" || !topic.startsWith(TOPIC_PREFIX) ||
                     topic.length() <= TOPIC_PREFIX.length()) {
