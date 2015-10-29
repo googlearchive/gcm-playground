@@ -101,6 +101,9 @@
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" returnKeyType="done"/>
+                                <connections>
+                                    <action selector="identifierDidBeginEditing:" destination="vXZ-lx-hvc" eventType="editingDidBegin" id="B5F-oO-Zb5"/>
+                                </connections>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="String Identifier" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Gg-JQ-9h2">
                                 <rect key="frame" x="20" y="30" width="100" height="17"/>
@@ -303,23 +306,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="351" y="444"/>
-        </scene>
-        <!--View Controller-->
-        <scene sceneID="0lV-js-5Vq">
-            <objects>
-                <viewController id="edk-XV-MxS" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="O3j-8c-VO8"/>
-                        <viewControllerLayoutGuide type="bottom" id="uCb-yp-6rZ"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="sO3-u9-LZp">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                    </view>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="oxx-rN-dTJ" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
         </scene>
     </scenes>
 </document>

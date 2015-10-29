@@ -29,6 +29,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
   let gcmAddress: String = "@gcm.googleapis.com"
   let topicPrefix: String = "/topics/"
 
+  let identifierPlaceholder: String = "<a_name_to_recognize_the_device>"
+
   @IBOutlet weak var registrationStatus: UITextView!
 
   @IBOutlet weak var stringIdentifierField: UITextField!
@@ -74,7 +76,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     self.topicNameField.delegate = self
     self.upstreamMessageField.delegate = self
 
-    self.stringIdentifierField.text = "<a_name_to_recognize_the_device>"
+    self.stringIdentifierField.text = identifierPlaceholder
   }
 
   // Hide the keyboard when click on "Return" or "Done" or similar
@@ -105,7 +107,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     progressIndicator.startAnimating()
 
     // Register with GCM and get token
-    var instanceIDConfig = GGLInstanceIDConfig.defaultConfig()
+    let instanceIDConfig = GGLInstanceIDConfig.defaultConfig()
     instanceIDConfig.delegate = appDelegate
     GGLInstanceID.sharedInstance().startWithConfig(instanceIDConfig)
     registrationOptions = [kGGLInstanceIDRegisterAPNSOption:apnsToken,
@@ -123,7 +125,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
   // Topic field editing handler.
   @IBAction func topicChangeHandler(sender: UITextField) {
-    var userInput = topicNameField.text
+    let userInput = topicNameField.text
     if (userInput != "") {
       topicSubscribeButton.enabled = true
     } else {
@@ -171,6 +173,16 @@ class ViewController: UIViewController, UITextFieldDelegate {
     })
   }
 
+  // Make it easier to delete that giant placeholder text. :)
+  @IBAction func identifierDidBeginEditing(sender: UITextField) {
+    print ("Sender text is \(sender.text)")
+    if sender.text == identifierPlaceholder {
+      dispatch_async(dispatch_get_main_queue(), { () -> Void in
+        sender.selectAll(self)
+      })
+    }
+
+  }
   ////////////////////////////////////////
   // Utility functions
   ////////////////////////////////////////
