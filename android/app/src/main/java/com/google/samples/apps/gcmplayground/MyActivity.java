@@ -288,7 +288,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
      */
     public void subscribeToTopic() {
         String senderId = getString(R.string.gcm_defaultSenderId);
-        if (!("".equals(senderId)) {
+        if (!("".equals(senderId))) {
             String topic = topicField.getText().toString().trim();
             if (topic == "" || !topic.startsWith(TOPIC_PREFIX) ||
                     topic.length() <= TOPIC_PREFIX.length()) {
