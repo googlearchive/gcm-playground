@@ -195,7 +195,7 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 func SendClientStatus(token string, d gcm.Data) error {
 	m := gcm.XmppMessage{
 		To:       token,
-		Priority: 10,
+		Priority: "high",
 		Data:     d,
 	}
 	_, _, sendErr := gcm.SendXmpp(senderId, apiKey, m)

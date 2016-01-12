@@ -49,12 +49,12 @@ Before you can start using the GCM Playground you need to configure a project an
 
 `web/app/settings.json`
 
-You should only need to change the IP address here. Replace `192.168.59.103` with the IP address that `docker-machine ls` or `boot2docker ip` gives you.
+You should only need to change the IP address here. Replace `192.168.99.100` with the IP address that `docker-machine ls` gives you.
 
     "main": {
-      "sendMessageEndpoint": "http://192.168.59.103:4260/message",
-      "clientsEndpoint": "http://192.168.59.103:4260/clients",
-      "socketEndpoint": "http://192.168.59.103:4260/"
+      "sendMessageEndpoint": "http://192.168.99.100:4260/message",
+      "clientsEndpoint": "http://192.168.99.100:4260/clients",
+      "socketEndpoint": "http://192.168.99.100:4260/"
     },
 
 
@@ -72,14 +72,13 @@ If the last command fails, you might need to give execute permission to the scri
 
 If using docker machine, run `docker-machine ls` to find out the VM IP address.
 
-If using boot2docker, run `$ boot2docker ip` to find out the VM IP address. Usually, the IP is `192.168.59.103`.
 
 The ports that are being used are:
 
 - **`3000` - Playground Web UI**
 - `4260` - App server
 
-So if your IP is `192.168.59.103`, load `192.168.59.103:3000` in the browser of the computer running docker to access the Playground UI.
+So if your IP is `192.168.99.100`, load `192.168.99.100:3000` in the browser of the computer running docker to access the Playground UI.
 
 If you want to access the Playground Web UI using a mobile client instead of the computer running docker, you need to tunnel the app server traffic so it's accessible via the public network. To do that, download [ngrok](https://ngrok.com) and run `$ ./ngrok http <IP ADDRESS>:4260`. Alternatively, you could also deploy the playground on any public cloud and use the server's address.
 
