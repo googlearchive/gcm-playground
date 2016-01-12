@@ -122,6 +122,7 @@ gulp.task('html', function () {
 
 gulp.task('serve', ['styles', 'elements', 'jshint'], function () {
   browserSync({
+    logLevel: "silent",
     notify: false,
     snippetOptions: {
       rule: {
