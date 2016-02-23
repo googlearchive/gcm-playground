@@ -1,7 +1,7 @@
 {
-  "name": "GCM Playground Receiver",
+  "name": "GCM Playground",
   "version": "0.0.1",
-  "description": "GCM Playground Receiver",
+  "description": "GCM Playground",
   "manifest_version": 2,
   "permissions": [
     "gcm",

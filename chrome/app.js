@@ -14,6 +14,7 @@
 
 var registerNewClient = "register_new_client";
 var unregisterClient = "unregister_client";
+var upsteramMessage = "upstream_message";
 
 var registrationToken = '';
 
@@ -42,6 +43,7 @@ function handleAlreadyRegistered() {
     setStatus('Already registered. Registration token:\n' + registrationToken);
     document.getElementById('register').disabled = true;
     document.getElementById('unregister').disabled = false;
+    document.getElementById('upstream').disabled = false;
   });
 }
 
@@ -52,6 +54,7 @@ function handleAlreadyRegistered() {
 function disableButtons() {
   document.getElementById('register').disabled = true;
   document.getElementById('unregister').disabled = true;
+  document.getElementById('upstream').disabled = true;
 }
 
 
@@ -158,6 +161,7 @@ function registerCallback(regToken) {
   if (chrome.runtime.lastError) {
     // Registration failed, handle the error and retry later.
     document.getElementById('register').disabled = false;
+    ocument.getElementById('upstream').disabled = false;
     return setStatus('FAILED: ' + chrome.runtime.lastError.message);
   }
 
@@ -173,9 +177,11 @@ function registerCallback(regToken) {
       chrome.storage.local.set({ regToken: registrationToken });
       document.getElementById('register').disabled = true;
       document.getElementById('unregister').disabled = false;
+      document.getElementById('upstream').disabled = false;
     } else {
       setAppServerStatus('Registration with app server FAILED: ' + err);
       document.getElementById('register').disabled = false;
+      ocument.getElementById('upstream').disabled = true;
     }
   });
 }
@@ -187,6 +193,7 @@ function registerCallback(regToken) {
 function unregisterCallback() {
   document.getElementById('register').disabled = false;
   document.getElementById('unregister').disabled = true;
+  document.getElementById('upstream').disabled = true;
 
   if (chrome.runtime.lastError) {
     return setStatus('FAILED: ' + chrome.runtime.lastError.message);
@@ -206,10 +213,42 @@ function unregisterCallback() {
   });
 }
 
+/**
+ * Sends an upsteram JSON message.  
+ */
+function sendUpstream() {
+  var msgContent = document.getElementById('upsterammsg').value;
+  var error = document.getElementById('jsonError');
+  var rawJson = document.getElementById('rawJson').checked;
+
+  error.style.display = 'none';
+  if (msgContent.length > 0) {
+    
+    var data = {
+      action: upsteramMessage,
+      message: msgContent
+    };
+
+    if (rawJson) {
+      try {
+        data = JSON.parse(msgContent);
+      } catch (e) {
+        error.style.display = 'inline';
+        return;
+      }
+    }
+
+    var message = buildMessagePayload(data);
+    chrome.gcm.send(message, function(messageId) {
+      console.log(messageId);
+    });
+  }
+}
 
 window.onload = function() {
   document.getElementById('register').onclick = register;
   document.getElementById('unregister').onclick = unregister;
+  document.getElementById('upstream').onclick = sendUpstream;
 
   chrome.gcm.onMessage.addListener(function(message) {
     console.log('chrome.gcm.onMessage', message);
@@ -223,6 +262,7 @@ window.onload = function() {
       setStatus('Put your sender ID above and click Register.');
       document.getElementById('register').disabled = false;
       document.getElementById('unregister').disabled = true;
+      document.getElementById('upstream').disabled = true;
     }
   });
 
