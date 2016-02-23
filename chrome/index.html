@@ -19,7 +19,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>GCM Playground Receiver</title>
+  <title>GCM Playground</title>
 
   <link rel="stylesheet" href="/mdl/material.min.css">
   <script src="/mdl/material.min.js"></script>
@@ -30,48 +30,72 @@
       padding: 20px;
     }
     .mdl-textfield {
-      width: 500px;
+      width: 90%;
     }
   </style>
 
 </head>
 <body>
 
-  <h4>GCM Playground Receiver</h4>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="senderId" />
-    <label class="mdl-textfield__label" for="senderId">Sender ID (Project ID)</label>
-    <span class="mdl-textfield__error">Input is not a number!</span>
-  </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <input class="mdl-textfield__input" type="text" id="stringIdentifier" />
-    <label class="mdl-textfield__label" for="stringIdentifier">String Identifier (Optional)</label>
-  </div>
+  <h4>GCM Playground</h4>
 
   <div class="mdl-grid">
-    <div class="mdl-cell mdl-cell--6-cols">
-      <button id="register" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Register</button>
+    <div class="mdl-cell mdl-cell--4-col">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="senderId" />
+        <label class="mdl-textfield__label" for="senderId">Sender ID (Project ID)</label>
+        <span class="mdl-textfield__error">Input is not a number!</span>
+      </div>
     </div>
-    <div class="mdl-cell mdl-cell--6-cols">
+    <div class="mdl-cell mdl-cell--4-col">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="stringIdentifier" />
+        <label class="mdl-textfield__label" for="stringIdentifier">String Identifier (Optional)</label>
+      </div>
+    </div>
+    <div class="mdl-cell mdl-cell--4-col">
+      <button id="register" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Register</button>
+      &nbsp;
       <button id="unregister" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Unregister</button>
     </div>
   </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <textarea class="mdl-textfield__input" type="text" id="appServerStatus" rows="2" cols="65"></textarea>
-    <label class="mdl-textfield__label" for="appServerStatus">App Server Registration Status</label>
+    <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--6-col">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <textarea class="mdl-textfield__input" type="text" id="appServerStatus" rows="2" cols="65"></textarea>
+        <label class="mdl-textfield__label" for="appServerStatus">App Server Registration Status</label>
+      </div>
+    </div>
+    <div class="mdl-cell mdl-cell--6-col">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-focused">
+        <textarea class="mdl-textfield__input" type="text" id="status" rows="4" cols="65"></textarea>
+        <label class="mdl-textfield__label" for="status">GCM Registration Status</label>
+      </div>
+    </div>
+    
   </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-focused">
-    <textarea class="mdl-textfield__input" type="text" id="status" rows="4" cols="65"></textarea>
-    <label class="mdl-textfield__label" for="status">GCM Registration Status</label>
-  </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-focused">
-    <textarea class="mdl-textfield__input" type="text" id="message" rows="5" cols="65"></textarea>
-    <label class="mdl-textfield__label" for="message">Message Received</label>
+<hr>
+<div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-focused">
+        <textarea class="mdl-textfield__input" type="text" id="message" rows="2" cols="65"></textarea>
+        <label class="mdl-textfield__label" for="message">Downstream Message Received</label>
+      </div>
+</div>
+<hr>
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--10-col">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-focused">
+        <textarea class="mdl-textfield__input" type="text" id="upsterammsg" rows="5" cols="80"></textarea>
+        <label class="mdl-textfield__label" for="upsterammsg">Upstream Message Content</label>
+      </div>
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="rawJson">
+        <input type="checkbox" id="rawJson" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label">JSON payload</span> <span style="display:none; color: red;" id="jsonError">JSON was invalid!  Not sent.</span>
+      </label>
+    </div>
+    <div class="mdl-cell mdl-cell--2-col">
+      <button id="upstream" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Send Upstream</button>
+    </div>
   </div>
 
 </body>

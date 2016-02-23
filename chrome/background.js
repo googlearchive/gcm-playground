@@ -17,8 +17,8 @@ var appWindow = null;
 function createWindow() {
   chrome.app.window.create(
     'index.html', {
-      width: 600,
-      height: 800,
+      width: 1000,
+      height: 700,
       frame: 'chrome',
       resizable: true
     },
