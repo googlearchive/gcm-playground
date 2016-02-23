@@ -219,13 +219,16 @@ function unregisterCallback() {
 function sendUpstream() {
   var msgContent = document.getElementById('upsterammsg').value;
   var error = document.getElementById('jsonError');
-
   var rawJson = document.getElementById('rawJson').checked;
-
 
   error.style.display = 'none';
   if (msgContent.length > 0) {
-    var data = {};
+    
+    var data = {
+      action: upsteramMessage,
+      message: msgContent
+    };
+
     if (rawJson) {
       try {
         data = JSON.parse(msgContent);
@@ -233,14 +236,9 @@ function sendUpstream() {
         error.style.display = 'inline';
         return;
       }
-    } else {
-      data = {
-        action: upsteramMessage,
-        message: msgContent
-      };
     }
-    var message = buildMessagePayload(data);
 
+    var message = buildMessagePayload(data);
     chrome.gcm.send(message, function(messageId) {
       console.log(messageId);
     });
