@@ -59,7 +59,7 @@ var (
 	debug = true
 
 	// Current database connection
-	db gorm.DB
+	db *gorm.DB
 
 	// Websocket connection
 	socket socketio.Socket
