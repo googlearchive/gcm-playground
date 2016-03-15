@@ -21,8 +21,8 @@ web:
   command: gulp serve
   ports:
     - "3000:3000"
-  volumes:
-    - ./web/:/src/gcm-playground/web/ 
+  #volumes:
+  #  - ./web/:/src/gcm-playground/web/ 
   links:
     - server
 

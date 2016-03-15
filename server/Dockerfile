@@ -33,6 +33,7 @@ RUN go get -u github.com/googollee/go-socket.io
 RUN go get -u github.com/rs/cors
 RUN go get -u github.com/google/go-gcm
 
+
 # -----------------
 # Copy files over
 # -----------------
