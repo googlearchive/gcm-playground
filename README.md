@@ -80,7 +80,7 @@ The ports that are being used are:
 
 So if your IP is `192.168.99.100`, load `192.168.99.100:3000` in the browser of the computer running docker to access the Playground UI.
 
-If you want to access the Playground Web UI using a mobile client instead of the computer running docker, you need to tunnel the app server traffic so it's accessible via the public network. To do that, download [ngrok](https://ngrok.com) and run `$ ./ngrok http <IP ADDRESS>:4260`. Alternatively, you could also deploy the playground on any public cloud and use the server's address.
+If you want to access the Playground Web UI using a mobile client instead of the computer running docker, you need to tunnel the app server traffic so it's accessible via the public network. To do that, download [ngrok](https://ngrok.com) and run `$ ./ngrok http <IP ADDRESS>:3000`. Alternatively, you could also deploy the playground on any public cloud and use the server's address.
 
 
 Android App
