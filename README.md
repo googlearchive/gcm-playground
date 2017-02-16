@@ -54,7 +54,7 @@ Before you can start using the GCM Playground you need to configure a project an
 
 `web/app/settings.json`
 
-You should only need to change the IP address here. Replace `192.168.99.100` with the IP address that `docker-machine ls` gives you.
+You should only need to change the IP address here. If `docker-machine ls` gives you an IP address different from `192.168.99.100`, update the "main" section accordingly replacing `192.168.99.100` with the IP address you get.
 
     "main": {
       "sendMessageEndpoint": "http://192.168.99.100:4260/message",
@@ -66,11 +66,8 @@ You should only need to change the IP address here. Replace `192.168.99.100` wit
 #### Installation - App Server and Playground UI
 
 - Install [Docker](https://docs.docker.com/installation/), [Docker Compose](https://docs.docker.com/compose/install/), and if using on a Mac [Docker Machine](https://docs.docker.com/machine/install-machine/).
-- Install [Node.js](https://nodejs.org/download/) >=0.12.0.
 - Clone this repo.
-- `$ ./start.sh`
-
-If the last command fails, you might need to give execute permission to the script. Do `$ chmod +x start.sh` and retry.
+- Open a terminal window, navigate to the folder where you have cloned the repo, execute `docker-compose up` 
 
 
 #### Accessing services - App Server and Playground UI

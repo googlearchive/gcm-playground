@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM node:slim
+FROM node:0.12
 
 # -----------------
 # Copy files over
@@ -27,8 +27,13 @@ WORKDIR /src/gcm-playground/web/
 # Install dependencies
 # -----------------
 
+RUN apt-get install git-core
 RUN npm install -g gulp
+# we need local gulp also
+RUN npm install gulp
 RUN npm install -g bower
+RUN npm install
+RUN bower install --allow-root
 
 
 # -----------------
