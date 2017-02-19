@@ -47,10 +47,10 @@ const (
 
 var (
 	// API key from Cloud console
-	apiKey = "<your_api_key>"
+	apiKey = "AIzaSyDc180dAAdcfZT77cuyx-BzIGgnmINivqI"
 
 	// GCM sender ID
-	senderId = "<your_sender_id>"
+	senderId = "1099444446302"
 
 	// The name of the database to connect to
 	databaseName = "data.db"

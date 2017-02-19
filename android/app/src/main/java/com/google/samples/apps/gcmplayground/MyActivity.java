@@ -216,6 +216,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
 
     /**
      * Calls the GCM API to register this client if not already registered.
+     *
      * @throws IOException
      */
     public void registerClient() {
@@ -334,6 +335,7 @@ public class MyActivity extends Activity implements View.OnClickListener {
 
     /**
      * Show a toast with passed text
+     *
      * @param text to be used as toast message
      */
     private void showToast(CharSequence text) {
